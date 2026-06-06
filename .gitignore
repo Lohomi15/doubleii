@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Secrets — never commit keys. Keys belong in the extension's local settings only.
+.env
+.env.*
+*.pem
+*.key
+secrets.json
+**/secrets.*
+
+# Build output
+dist/
+*.zip
+*.crx
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log

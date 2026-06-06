@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>doubleii — Settings</title>
+    <link rel="stylesheet" href="../shared/page.css" />
+  </head>
+  <body>
+    <main class="wrap">
+      <header class="brand">
+        <span class="logo"></span>
+        <div>
+          <h1>doubleii</h1>
+          <p class="muted">An extra pair of AI-powered eyes.</p>
+        </div>
+      </header>
+
+      <section class="card">
+        <h2>Provider</h2>
+        <div class="row radios">
+          <label><input type="radio" name="provider" value="anthropic" /> Anthropic (Claude)</label>
+          <label><input type="radio" name="provider" value="openai" /> OpenAI</label>
+        </div>
+
+        <div class="field" data-provider="anthropic">
+          <label for="anthropicKey">Anthropic API key</label>
+          <input id="anthropicKey" type="password" placeholder="sk-ant-..." autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="field" data-provider="openai">
+          <label for="openaiKey">OpenAI API key</label>
+          <input id="openaiKey" type="password" placeholder="sk-..." autocomplete="off" spellcheck="false" />
+        </div>
+
+        <div class="field">
+          <label for="model">Model <span class="muted">(optional — leave blank for the default)</span></label>
+          <input id="model" type="text" list="models" placeholder="default" autocomplete="off" spellcheck="false" />
+          <datalist id="models">
+            <option value="claude-haiku-4-5-20251001"></option>
+            <option value="claude-sonnet-4-6"></option>
+            <option value="claude-opus-4-8"></option>
+            <option value="gpt-4o-mini"></option>
+            <option value="gpt-4o"></option>
+          </datalist>
+        </div>
+
+        <div class="row">
+          <button id="save" class="primary">Save</button>
+          <span id="status" class="status" role="status"></span>
+        </div>
+      </section>
+
+      <section class="card subtle">
+        <h2>Your data</h2>
+        <p class="muted small">
+          doubleii has <b>no servers</b>. Your API key and your reading history are stored only on
+          this device (<code>chrome.storage.local</code>). When you ask for an explanation, the
+          highlighted text and surrounding article go <b>directly</b> from your browser to the
+          provider you chose above, using your key — nothing passes through doubleii.
+        </p>
+        <p class="row">
+          <a class="link" href="../history/history.html" target="_blank">Open history →</a>
+          <a class="link muted" href="https://github.com/Lohomi15/doubleii" target="_blank">GitHub</a>
+        </p>
+      </section>
+    </main>
+    <script type="module" src="options.js"></script>
+  </body>
+</html>

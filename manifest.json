@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "doubleii — explain anything",
+  "version": "0.1.0",
+  "description": "An extra pair of AI-powered eyes. Highlight any line in any article and get a simple, context-aware explanation. Bring your own key. No servers.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "permissions": ["storage", "contextMenus"],
+  "host_permissions": [
+    "https://api.anthropic.com/*",
+    "https://api.openai.com/*"
+  ],
+  "background": {
+    "service_worker": "src/background/service-worker.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content/content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "options_page": "src/options/options.html",
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_title": "doubleii"
+  },
+  "commands": {
+    "explain-selection": {
+      "suggested_key": { "default": "Alt+B" },
+      "description": "Explain the selected text with doubleii"
+    }
+  }
+}

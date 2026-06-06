@@ -1,0 +1,81 @@
+// Provider calls. These run inside the extension's service worker, which can
+// fetch cross-origin (via host_permissions) without CORS issues, and keeps the
+// API key out of the page/content-script context for safety.
+//
+// The user's text goes directly from their browser to the provider they chose,
+// using their own key. doubleii has no server in the middle.
+
+import { DEFAULT_MODELS } from "./storage.js";
+import { SYSTEM_PROMPT, buildUserPrompt } from "./prompt.js";
+
+const MAX_TOKENS = 400;
+
+export async function explain({ provider, model, keys, selectedText, context, title }) {
+  const user = buildUserPrompt({ selectedText, context, title });
+  if (provider === "anthropic") {
+    return callAnthropic({ model, key: keys.anthropicKey, system: SYSTEM_PROMPT, user });
+  }
+  if (provider === "openai") {
+    return callOpenAI({ model, key: keys.openaiKey, system: SYSTEM_PROMPT, user });
+  }
+  throw new Error(`Unknown provider: ${provider}`);
+}
+
+async function callAnthropic({ model, key, system, user }) {
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-api-key": key,
+      "anthropic-version": "2023-06-01",
+      // Required to call the Anthropic API directly from a browser context.
+      "anthropic-dangerous-direct-browser-access": "true",
+    },
+    body: JSON.stringify({
+      model: model || DEFAULT_MODELS.anthropic,
+      max_tokens: MAX_TOKENS,
+      system,
+      messages: [{ role: "user", content: user }],
+    }),
+  });
+  if (!res.ok) throw new Error(await formatError("Anthropic", res));
+  const data = await res.json();
+  return (data.content || [])
+    .filter((b) => b.type === "text")
+    .map((b) => b.text)
+    .join("")
+    .trim();
+}
+
+async function callOpenAI({ model, key, system, user }) {
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${key}`,
+    },
+    body: JSON.stringify({
+      model: model || DEFAULT_MODELS.openai,
+      max_tokens: MAX_TOKENS,
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
+    }),
+  });
+  if (!res.ok) throw new Error(await formatError("OpenAI", res));
+  const data = await res.json();
+  return (data.choices?.[0]?.message?.content || "").trim();
+}
+
+async function formatError(label, res) {
+  let detail = "";
+  try {
+    detail = (await res.text()).slice(0, 300);
+  } catch {
+    /* ignore */
+  }
+  if (res.status === 401) return `${label}: invalid API key (401). Check it in doubleii settings.`;
+  if (res.status === 429) return `${label}: rate limit or out of credits (429).`;
+  return `${label} request failed (${res.status}). ${detail}`;
+}
