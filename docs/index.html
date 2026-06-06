@@ -62,7 +62,7 @@ nav {
 }
 .nav-logo {
   display: flex; align-items: center; gap: 10px;
-  font: 600 19px/1 var(--serif); letter-spacing: -0.02em; color: var(--ink);
+  font: 600 19px/1.25 var(--serif); letter-spacing: 0.01em; color: var(--ink);
 }
 .nav-logo-mark {
   width: 30px; height: 30px; border-radius: 7px; background: var(--ink);
@@ -101,7 +101,7 @@ nav {
   content: ""; display: inline-block; width: 20px; height: 1px; background: var(--smoke);
 }
 h1 {
-  font: 700 64px/1.05 var(--serif); letter-spacing: -0.025em; color: var(--ink);
+  font: 700 64px/1.18 var(--serif); letter-spacing: -0.01em; color: var(--ink);
   margin-bottom: 22px;
 }
 @media (max-width: 600px) { h1 { font-size: 40px; } }
@@ -150,7 +150,7 @@ h1 {
   display: flex; align-items: center; justify-content: space-between;
   padding: 9px 11px 7px 13px; border-bottom: 1px solid rgba(255,255,255,.07);
 }
-.demo-bubble-brand { font: 600 14px/1 var(--serif); letter-spacing: -0.02em; }
+.demo-bubble-brand { font: 600 14px/1.25 var(--serif); letter-spacing: 0.01em; }
 .demo-bubble-close { color: #808080; font-size: 15px; line-height: 1; }
 .demo-bubble-body { padding: 11px 13px 13px; }
 @media (max-width: 800px) {
@@ -166,7 +166,7 @@ h1 {
 .hiw-header { margin-bottom: 52px; }
 .hiw-header .mono-label { margin-bottom: 14px; }
 .hiw-heading {
-  font: 700 44px/1.1 var(--serif); letter-spacing: -0.025em; color: var(--ink);
+  font: 700 44px/1.18 var(--serif); letter-spacing: -0.01em; color: var(--ink);
   max-width: 520px;
 }
 @media (max-width: 600px) { .hiw-heading { font-size: 30px; } }
@@ -183,7 +183,7 @@ h1 {
   color: var(--paper); font: 600 12px/28px var(--mono); text-align: center;
   flex: none;
 }
-.step-title { font: 600 17px/1.3 var(--serif); color: var(--ink); }
+.step-title { font: 600 17px/1.5 var(--serif); letter-spacing: 0.005em; color: var(--ink); }
 .step-body  { font-size: 14px; line-height: 1.6; color: var(--ash); }
 
 /* keycap bento inside how it works */
@@ -214,7 +214,7 @@ h1 {
 /* ---- bento features --------------------------------------------------- */
 .features { padding: 0 24px 80px; max-width: 1100px; margin: 0 auto; }
 .features-heading {
-  font: 700 44px/1.1 var(--serif); letter-spacing: -0.025em; color: var(--ink);
+  font: 700 44px/1.18 var(--serif); letter-spacing: -0.01em; color: var(--ink);
   margin-bottom: 36px; max-width: 500px;
 }
 @media (max-width: 600px) { .features-heading { font-size: 30px; } }
@@ -229,7 +229,7 @@ h1 {
 .bento-card.wide { grid-column: span 2; }
 @media (max-width: 860px) { .bento-card.wide { grid-column: span 1; } }
 .bento-icon { font-size: 22px; line-height: 1; }
-.bento-title { font: 600 16px/1.3 var(--serif); color: inherit; }
+.bento-title { font: 600 16px/1.55 var(--serif); letter-spacing: 0.005em; color: inherit; }
 .bento-body  { font-size: 13.5px; line-height: 1.6; color: var(--ash); }
 .bento-card.dark .bento-body { color: #9a9a9a; }
 .bento-pill {
@@ -252,7 +252,7 @@ h1 {
 .privacy-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; }
 @media (max-width: 720px) { .privacy-inner { grid-template-columns: 1fr; gap: 36px; } }
 .privacy-heading {
-  font: 700 44px/1.1 var(--serif); letter-spacing: -0.025em; color: #fff;
+  font: 700 44px/1.18 var(--serif); letter-spacing: -0.01em; color: #fff;
   margin-bottom: 16px;
 }
 @media (max-width: 600px) { .privacy-heading { font-size: 30px; } }
@@ -270,7 +270,7 @@ h1 {
 /* ---- install ---------------------------------------------------------- */
 .install { padding: 80px 24px; max-width: 780px; margin: 0 auto; text-align: center; }
 .install-heading {
-  font: 700 44px/1.1 var(--serif); letter-spacing: -0.025em; color: var(--ink);
+  font: 700 44px/1.18 var(--serif); letter-spacing: -0.01em; color: var(--ink);
   margin-bottom: 14px;
 }
 @media (max-width: 600px) { .install-heading { font-size: 30px; } }
@@ -305,7 +305,7 @@ footer {
   max-width: 1100px; margin: 0 auto;
   display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;
 }
-.footer-brand { font: 600 16px/1 var(--serif); letter-spacing: -0.02em; color: var(--ink); }
+.footer-brand { font: 600 16px/1.4 var(--serif); letter-spacing: 0.01em; color: var(--ink); }
 .footer-links { display: flex; gap: 20px; }
 .footer-links a { font-size: 13px; color: var(--ash); }
 .footer-links a:hover { color: var(--ink); }
@@ -390,7 +390,7 @@ footer {
       <div class="hiw">
         <div class="hiw-header">
           <div class="mono-label">How it works</div>
-          <h2 class="hiw-heading" style="font:700 44px/1.1 var(--serif);letter-spacing:-.025em;color:var(--ink);margin-top:14px;">
+          <h2 class="hiw-heading" style="font:700 44px/1.18 var(--serif);letter-spacing:-.01em;color:var(--ink);margin-top:14px;">
             Three steps.<br>No copy-paste.
           </h2>
         </div>

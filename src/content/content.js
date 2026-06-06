@@ -337,7 +337,7 @@
       padding: 11px 12px 9px 15px; border-bottom: 1px solid rgba(255,255,255,.07);
     }
     .dii-brand {
-      font: 600 16px/1 'dii-Serif', Georgia, serif; letter-spacing: -0.02em; color: #ffffff;
+      font: 600 16px/1.3 'dii-Serif', Georgia, serif; letter-spacing: 0.01em; color: #ffffff;
     }
     .dii-actions { display: inline-flex; gap: 2px; }
     .dii-btn {
