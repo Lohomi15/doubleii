@@ -15,12 +15,16 @@ export async function getSettings() {
     "model",
     "anthropicKey",
     "openaiKey",
+    "language",
+    "customPrompt",
   ]);
   return {
     provider: d.provider || "anthropic",
     model: d.model || "",
     anthropicKey: d.anthropicKey || "",
     openaiKey: d.openaiKey || "",
+    language: d.language || "English",
+    customPrompt: d.customPrompt || "",
   };
 }
 

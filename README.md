@@ -32,6 +32,11 @@ The explanation is written for "simple language that anyone with a decent
 general education can understand" — not a generic dictionary definition, but an
 explanation grounded in *what you're actually reading*.
 
+In **Settings** you can choose your **provider** (Anthropic or OpenAI), the
+**response language** (English, Hindi, Japanese, Korean, Spanish, Chinese,
+French), and edit the **system prompt** if you want to change how explanations
+are written (leave it blank to use the default).
+
 ## Your data & privacy
 
 This is the important part, and it's deliberately simple:
@@ -97,7 +102,6 @@ APIs cross-origin (via `host_permissions`) without CORS problems.
 
 - Streaming token-by-token answers
 - Configurable trigger key (Wispr/Linear-style)
-- Adjustable explanation depth ("simpler" / "more detail")
 - Local model support (Ollama) for fully offline use
 - Safari (Xcode wrapper) and in-page PDF support
 
@@ -106,6 +110,12 @@ APIs cross-origin (via `host_permissions`) without CORS problems.
 Issues and PRs welcome. Please **never commit API keys** or other secrets — see
 `.gitignore`. Keys belong only in your local extension settings.
 
+## Fonts
+
+The UI bundles three open-source fonts (latin subset, self-hosted so it works
+offline), each under the SIL Open Font License: **Inter**, **Playfair Display**,
+and **JetBrains Mono**.
+
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE) (doubleii's own code). Bundled fonts are under the SIL OFL.

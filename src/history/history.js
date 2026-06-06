@@ -37,7 +37,7 @@ function card(entry) {
   meta.append(
     el("span", {
       className: "muted small",
-      textContent: [entry.title, fmtDate(entry.ts), entry.model || entry.provider]
+      textContent: [entry.title, fmtDate(entry.ts), entry.model || entry.provider, entry.language]
         .filter(Boolean)
         .join(" · "),
     })

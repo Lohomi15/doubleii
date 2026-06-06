@@ -4,6 +4,7 @@
 
 import { getSettings, addHistory } from "../lib/storage.js";
 import { explain } from "../lib/providers.js";
+import { composeSystemPrompt } from "../lib/prompt.js";
 
 const MENU_ID = "doubleii-explain";
 
@@ -30,14 +31,19 @@ chrome.commands.onCommand.addListener((command, tab) => {
   }
 });
 
-// The content script sends selection + context here; we call the provider and
-// return the explanation (and persist it to local history).
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+  // The content script sends selection + context here; we call the provider and
+  // return the explanation (and persist it to local history).
   if (msg?.type === "doubleii:explain") {
     handleExplain(msg.payload)
       .then(sendResponse)
-      .catch((e) => sendResponse({ error: String(e?.message || e) }));
+      .catch((e) => sendResponse({ error: String(e?.message || e), code: e?.code || "GENERIC" }));
     return true; // keep the message channel open for the async response
+  }
+  // Let the bubble open the settings page (e.g. when no key is set).
+  if (msg?.type === "doubleii:open-options") {
+    chrome.runtime.openOptionsPage();
+    return false;
   }
   return false;
 });
@@ -47,14 +53,18 @@ async function handleExplain(payload) {
   const key = settings.provider === "anthropic" ? settings.anthropicKey : settings.openaiKey;
   if (!key) {
     return {
-      error: `No ${settings.provider} API key set. Click the doubleii icon → Settings to add one.`,
+      error: `No ${settings.provider} API key set yet.`,
+      code: "NO_KEY",
     };
   }
+
+  const system = composeSystemPrompt(settings.customPrompt, settings.language);
 
   const explanation = await explain({
     provider: settings.provider,
     model: settings.model,
     keys: { anthropicKey: settings.anthropicKey, openaiKey: settings.openaiKey },
+    system,
     selectedText: payload.selectedText,
     context: payload.context,
     title: payload.title,
@@ -69,6 +79,7 @@ async function handleExplain(payload) {
     title: payload.title,
     provider: settings.provider,
     model: settings.model || "",
+    language: settings.language,
     ts: payload.ts,
   });
 

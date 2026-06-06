@@ -6,19 +6,19 @@
 // using their own key. doubleii has no server in the middle.
 
 import { DEFAULT_MODELS } from "./storage.js";
-import { SYSTEM_PROMPT, buildUserPrompt } from "./prompt.js";
+import { buildUserPrompt } from "./prompt.js";
 
 const MAX_TOKENS = 400;
 
-export async function explain({ provider, model, keys, selectedText, context, title }) {
+export async function explain({ provider, model, keys, system, selectedText, context, title }) {
   const user = buildUserPrompt({ selectedText, context, title });
   if (provider === "anthropic") {
-    return callAnthropic({ model, key: keys.anthropicKey, system: SYSTEM_PROMPT, user });
+    return callAnthropic({ model, key: keys.anthropicKey, system, user });
   }
   if (provider === "openai") {
-    return callOpenAI({ model, key: keys.openaiKey, system: SYSTEM_PROMPT, user });
+    return callOpenAI({ model, key: keys.openaiKey, system, user });
   }
-  throw new Error(`Unknown provider: ${provider}`);
+  throw providerError("GENERIC", `Unknown provider: ${provider}`);
 }
 
 async function callAnthropic({ model, key, system, user }) {
@@ -38,7 +38,7 @@ async function callAnthropic({ model, key, system, user }) {
       messages: [{ role: "user", content: user }],
     }),
   });
-  if (!res.ok) throw new Error(await formatError("Anthropic", res));
+  if (!res.ok) throw await toError("Anthropic", res);
   const data = await res.json();
   return (data.content || [])
     .filter((b) => b.type === "text")
@@ -63,19 +63,32 @@ async function callOpenAI({ model, key, system, user }) {
       ],
     }),
   });
-  if (!res.ok) throw new Error(await formatError("OpenAI", res));
+  if (!res.ok) throw await toError("OpenAI", res);
   const data = await res.json();
   return (data.choices?.[0]?.message?.content || "").trim();
 }
 
-async function formatError(label, res) {
+// Build an Error carrying a machine-readable `code` so the bubble can show the
+// right recovery action (open settings vs. retry).
+function providerError(code, message) {
+  return Object.assign(new Error(message), { code });
+}
+
+async function toError(label, res) {
   let detail = "";
   try {
-    detail = (await res.text()).slice(0, 300);
+    detail = (await res.text()).slice(0, 200);
   } catch {
     /* ignore */
   }
-  if (res.status === 401) return `${label}: invalid API key (401). Check it in doubleii settings.`;
-  if (res.status === 429) return `${label}: rate limit or out of credits (429).`;
-  return `${label} request failed (${res.status}). ${detail}`;
+  if (res.status === 401 || res.status === 403) {
+    return providerError("AUTH", `Your ${label} API key was rejected. Check it in Settings.`);
+  }
+  if (res.status === 429) {
+    return providerError(
+      "RATE",
+      `${label} hit a rate limit or you're out of credits — check your billing with ${label}.`
+    );
+  }
+  return providerError("GENERIC", `Something went wrong with ${label} (${res.status}). ${detail}`.trim());
 }

@@ -2,7 +2,19 @@
 // line, in plain language, using the surrounding article so the answer is
 // specific to what the user is reading — not a generic dictionary definition.
 
-export const SYSTEM_PROMPT = [
+export const LANGUAGES = [
+  "English",
+  "Hindi",
+  "Japanese",
+  "Korean",
+  "Spanish",
+  "Chinese",
+  "French",
+];
+
+// Shown as the editable placeholder in Settings. If the user leaves the prompt
+// box empty, this is what doubleii uses.
+export const DEFAULT_SYSTEM_PROMPT = [
   "You are doubleii, an extra pair of eyes for someone reading an article online.",
   "They highlighted a specific passage they didn't fully understand.",
   "",
@@ -16,6 +28,13 @@ export const SYSTEM_PROMPT = [
   "- Stay grounded in the provided article context; do not invent facts.",
   "- If the passage is already simple, say what it's getting at in one short sentence.",
 ].join("\n");
+
+// Combine the user's custom prompt (or the default) with their chosen language.
+export function composeSystemPrompt(customPrompt, language) {
+  const base = customPrompt && customPrompt.trim() ? customPrompt.trim() : DEFAULT_SYSTEM_PROMPT;
+  const lang = language || "English";
+  return `${base}\n\nAlways write the explanation in ${lang}.`;
+}
 
 export function buildUserPrompt({ selectedText, context, title }) {
   const parts = [];

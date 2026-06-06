@@ -5,7 +5,7 @@
 //   2. Extract the surrounding article context (article body, or a window
 //      around the selection as a fallback).
 //   3. Render a floating bubble (Shadow DOM, isolated from the page's CSS) with
-//      a shimmer, then the explanation returned by the service worker.
+//      a "thinking" shimmer, then the explanation returned by the service worker.
 //
 // The API key never lives here — we only send selection + context to the
 // service worker, which makes the actual provider call.
@@ -18,18 +18,26 @@
   const MAX_CONTEXT_CHARS = 6000;
   const MIN_SELECTION_CHARS = 2;
 
+  const THINKING_MESSAGES = [
+    "Reading the context…",
+    "Thinking it through…",
+    "Putting it in plain words…",
+    "Thinking a little longer…",
+  ];
+
   let host = null; // shadow host element on the page
   let shadow = null;
   let iconBtn = null;
   let bubble = null;
-  let currentSelection = null; // { text, rect }
+  let currentSelection = null; // selection backing the icon
+  let lastInfo = null; // last selection we explained (for retry)
+  let thinkTimer = null;
 
   // ---- selection handling -------------------------------------------------
 
   document.addEventListener("mouseup", onPointerUp, true);
   document.addEventListener("keyup", (e) => {
-    // Allow keyboard selections (shift+arrows) to surface the icon too.
-    if (e.shiftKey) onPointerUp(e);
+    if (e.shiftKey) onPointerUp(e); // keyboard selections (shift+arrows)
   });
   document.addEventListener("mousedown", (e) => {
     if (insideOurUI(e.target)) return;
@@ -46,7 +54,6 @@
 
   function onPointerUp(e) {
     if (insideOurUI(e.target)) return;
-    // Defer so the browser finalizes the selection first.
     setTimeout(() => {
       const info = readSelection();
       if (info) showIcon(info);
@@ -85,7 +92,6 @@
     let text = (container.innerText || "").replace(/\n{3,}/g, "\n\n").trim();
 
     if (text.length > MAX_CONTEXT_CHARS) {
-      // Window the context around the selection so the model sees what's near it.
       const idx = text.indexOf(selectedText);
       if (idx >= 0) {
         const start = Math.max(0, idx - Math.floor(MAX_CONTEXT_CHARS / 2));
@@ -98,8 +104,6 @@
   }
 
   function buildFragmentUrl(selectedText) {
-    // Chrome text-fragment link: reopens the page scrolled to and highlighting
-    // the exact line. Cap length so the URL stays valid.
     const snippet = selectedText.replace(/\s+/g, " ").trim().slice(0, 150);
     try {
       return `${location.origin}${location.pathname}${location.search}#:~:text=${encodeURIComponent(
@@ -125,7 +129,7 @@
     });
     shadow = host.attachShadow({ mode: "open" });
     const style = document.createElement("style");
-    style.textContent = STYLES;
+    style.textContent = fontFaceCSS() + STYLES;
     shadow.appendChild(style);
     document.documentElement.appendChild(host);
   }
@@ -134,13 +138,12 @@
     const margin = 8;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    // Render off-screen briefly to measure, then clamp into the viewport.
     el.style.left = "-9999px";
     el.style.top = "-9999px";
     requestAnimationFrame(() => {
       const w = el.offsetWidth;
       const h = el.offsetHeight;
-      let left = Math.min(Math.max(margin, rect.left), vw - w - margin);
+      const left = Math.min(Math.max(margin, rect.left), vw - w - margin);
       let top = rect.bottom + margin;
       if (top + h > vh - margin) top = Math.max(margin, rect.top - h - margin);
       el.style.left = `${left}px`;
@@ -175,9 +178,10 @@
 
   function startExplain(info) {
     if (!info) return;
+    lastInfo = info;
     hideIcon();
     showBubble(info.rect);
-    setBubbleLoading();
+    setBubbleThinking();
 
     const payload = {
       id: `${info.rect.top | 0}-${performance.now() | 0}-${(Math.random() * 1e6) | 0}`,
@@ -193,11 +197,11 @@
       .sendMessage({ type: "doubleii:explain", payload })
       .then((res) => {
         if (!bubble) return;
-        if (res?.error) setBubbleError(res.error);
+        if (res?.error) setBubbleError(res);
         else setBubbleText(res?.explanation || "No explanation returned.");
       })
       .catch((e) => {
-        if (bubble) setBubbleError(String(e?.message || e));
+        if (bubble) setBubbleError({ error: String(e?.message || e), code: "GENERIC" });
       });
   }
 
@@ -208,11 +212,15 @@
     bubble.className = "dii-bubble";
     bubble.innerHTML = `
       <div class="dii-head">
-        <span class="dii-brand">${EYES_SVG}<b>doubleii</b></span>
-        <button class="dii-close" title="Close" aria-label="Close">×</button>
+        <span class="dii-brand">doubleii</span>
+        <span class="dii-actions">
+          <button class="dii-btn dii-retry" title="Retry">${RETRY_SVG}</button>
+          <button class="dii-btn dii-close" title="Close">${CLOSE_SVG}</button>
+        </span>
       </div>
       <div class="dii-body"></div>`;
     bubble.querySelector(".dii-close").addEventListener("click", hideBubble);
+    bubble.querySelector(".dii-retry").addEventListener("click", () => startExplain(lastInfo));
     shadow.appendChild(bubble);
     placeAt(bubble, rect);
   }
@@ -221,30 +229,63 @@
     return bubble && bubble.querySelector(".dii-body");
   }
 
-  function setBubbleLoading() {
+  function stopThinking() {
+    if (thinkTimer) {
+      clearInterval(thinkTimer);
+      thinkTimer = null;
+    }
+  }
+
+  function setBubbleThinking() {
     const body = bodyEl();
     if (!body) return;
-    body.innerHTML = `
-      <div class="dii-shimmer"></div>
-      <div class="dii-shimmer"></div>
-      <div class="dii-shimmer short"></div>`;
+    body.className = "dii-body";
+    body.innerHTML = `<div class="dii-think"><span class="dii-think-text"></span></div>`;
+    const textEl = body.querySelector(".dii-think-text");
+    let i = 0;
+    textEl.textContent = THINKING_MESSAGES[0];
+    stopThinking();
+    thinkTimer = setInterval(() => {
+      i = Math.min(i + 1, THINKING_MESSAGES.length - 1);
+      textEl.textContent = THINKING_MESSAGES[i];
+    }, 2200);
   }
 
   function setBubbleText(text) {
+    stopThinking();
     const body = bodyEl();
     if (!body) return;
     body.className = "dii-body";
     body.textContent = text;
   }
 
-  function setBubbleError(text) {
+  function setBubbleError({ error, code }) {
+    stopThinking();
     const body = bodyEl();
     if (!body) return;
-    body.className = "dii-body dii-error";
-    body.textContent = text;
+    const settingsCodes = code === "NO_KEY" || code === "AUTH";
+    const message =
+      code === "NO_KEY"
+        ? "No API key set yet. Add your key in Settings to start explaining."
+        : error || "Something went wrong. Please retry.";
+    const actionLabel = settingsCodes ? "Open Settings" : "Retry";
+
+    body.className = "dii-body";
+    body.innerHTML = `
+      <div class="dii-err">
+        <div class="dii-err-label">Couldn't explain</div>
+        <div class="dii-err-msg"></div>
+        <button class="dii-action">${actionLabel}</button>
+      </div>`;
+    body.querySelector(".dii-err-msg").textContent = message;
+    body.querySelector(".dii-action").addEventListener("click", () => {
+      if (settingsCodes) chrome.runtime.sendMessage({ type: "doubleii:open-options" });
+      else startExplain(lastInfo);
+    });
   }
 
   function hideBubble() {
+    stopThinking();
     if (bubble) {
       bubble.remove();
       bubble = null;
@@ -256,42 +297,75 @@
   const EYES_SVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <circle cx="8.5" cy="12" r="2.4" fill="currentColor"/>
     <circle cx="15.5" cy="12" r="2.4" fill="currentColor"/></svg>`;
+  const CLOSE_SVG = `<svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+    <path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
+  const RETRY_SVG = `<svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+    <path d="M11.5 7a4.5 4.5 0 1 1-1.32-3.18M11.5 1.5V4H9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+  function fontFaceCSS() {
+    const inter = chrome.runtime.getURL("fonts/inter-var.woff2");
+    const playfair = chrome.runtime.getURL("fonts/playfair-600.woff2");
+    return `
+      @font-face { font-family: 'doubleii-Sans'; font-weight: 400 600; font-display: swap; src: url(${inter}) format('woff2'); }
+      @font-face { font-family: 'doubleii-Serif'; font-weight: 600; font-display: swap; src: url(${playfair}) format('woff2'); }`;
+  }
 
   const STYLES = `
     :host { all: initial; }
+    * { box-sizing: border-box; }
+
     .dii-icon {
       position: fixed; display: inline-flex; align-items: center; gap: 6px;
-      font: 600 13px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      color: #fff; background: #4f46e5; border: 0; border-radius: 8px;
-      padding: 7px 10px; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,.22);
+      font: 600 13px/1 'doubleii-Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      letter-spacing: -0.01em; color: #ffffff; background: #000000; border: 0;
+      border-radius: 9px; padding: 8px 11px; cursor: pointer;
+      box-shadow: 0 4px 16px rgba(0,0,0,.28);
     }
-    .dii-icon:hover { background: #4338ca; }
-    .dii-icon svg { color: #fff; }
+    .dii-icon:hover { background: #181818; }
+
     .dii-bubble {
-      position: fixed; width: 320px; max-width: 90vw;
-      background: #1f2330; color: #f3f4f6; border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.35); overflow: hidden;
-      font: 400 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      position: fixed; width: 328px; max-width: 92vw;
+      background: #181818; color: #f5f4f2; border: 1px solid rgba(255,255,255,.08);
+      border-radius: 14px; box-shadow: 0 14px 44px rgba(0,0,0,.4); overflow: hidden;
+      font: 400 14px/1.6 'doubleii-Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      letter-spacing: -0.003em;
     }
     .dii-head {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 9px 12px; background: rgba(255,255,255,.04);
+      padding: 11px 12px 9px 15px; border-bottom: 1px solid rgba(255,255,255,.07);
     }
-    .dii-brand { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #c7c9d1; }
-    .dii-brand b { color: #fff; font-weight: 700; letter-spacing: .2px; }
-    .dii-brand svg { color: #8b8ff5; }
-    .dii-close {
-      background: transparent; border: 0; color: #9aa0ab; font-size: 18px;
-      line-height: 1; cursor: pointer; padding: 0 2px;
+    .dii-brand {
+      font: 600 16px/1 'doubleii-Serif', Georgia, serif; letter-spacing: -0.02em; color: #ffffff;
     }
-    .dii-close:hover { color: #fff; }
-    .dii-body { padding: 12px 14px; white-space: pre-wrap; }
-    .dii-error { color: #fca5a5; }
-    .dii-shimmer {
-      height: 11px; border-radius: 6px; margin: 7px 0;
-      background: linear-gradient(90deg, #2a2f3d 25%, #3a4150 37%, #2a2f3d 63%);
-      background-size: 400% 100%; animation: dii-shine 1.3s ease-in-out infinite;
+    .dii-actions { display: inline-flex; gap: 2px; }
+    .dii-btn {
+      background: transparent; border: 0; color: #9a9a9a; cursor: pointer;
+      padding: 5px; border-radius: 7px; display: inline-flex; line-height: 0;
     }
-    .dii-shimmer.short { width: 55%; }
-    @keyframes dii-shine { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }`;
+    .dii-btn:hover { color: #ffffff; background: rgba(255,255,255,.08); }
+
+    .dii-body { padding: 14px 15px 16px; white-space: pre-wrap; }
+
+    /* thinking shimmer */
+    .dii-think { padding: 6px 0 8px; }
+    .dii-think-text {
+      font-size: 14px; font-weight: 500;
+      background: linear-gradient(90deg, #6d6d6d 30%, #ffffff 50%, #6d6d6d 70%);
+      background-size: 220% 100%; -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent; color: transparent;
+      animation: dii-shimmer 1.7s linear infinite;
+    }
+    @keyframes dii-shimmer { 0% { background-position: 120% 0; } 100% { background-position: -120% 0; } }
+
+    /* error state */
+    .dii-err-label {
+      font: 400 10px/1 'doubleii-Sans', monospace; text-transform: uppercase;
+      letter-spacing: 0.14em; color: #9a9a9a; margin-bottom: 8px;
+    }
+    .dii-err-msg { color: #e8e6e2; margin-bottom: 13px; }
+    .dii-action {
+      font: 600 12.5px/1 'doubleii-Sans', sans-serif; cursor: pointer;
+      background: #ffffff; color: #000000; border: 0; border-radius: 8px; padding: 9px 14px;
+    }
+    .dii-action:hover { background: #e8e6e2; }`;
 })();

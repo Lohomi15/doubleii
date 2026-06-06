@@ -12,15 +12,17 @@
         <span class="logo"></span>
         <div>
           <h1>doubleii</h1>
-          <p class="muted">An extra pair of AI-powered eyes.</p>
+          <p class="muted small">An extra pair of AI-powered eyes.</p>
         </div>
       </header>
 
       <section class="card">
         <h2>Provider</h2>
-        <div class="row radios">
-          <label><input type="radio" name="provider" value="anthropic" /> Anthropic (Claude)</label>
-          <label><input type="radio" name="provider" value="openai" /> OpenAI</label>
+        <div class="field">
+          <div class="radios">
+            <label><input type="radio" name="provider" value="anthropic" /> Anthropic</label>
+            <label><input type="radio" name="provider" value="openai" /> OpenAI</label>
+          </div>
         </div>
 
         <div class="field" data-provider="anthropic">
@@ -33,7 +35,7 @@
         </div>
 
         <div class="field">
-          <label for="model">Model <span class="muted">(optional — leave blank for the default)</span></label>
+          <label for="model">Model <span class="muted">— leave blank for the default</span></label>
           <input id="model" type="text" list="models" placeholder="default" autocomplete="off" spellcheck="false" />
           <datalist id="models">
             <option value="claude-haiku-4-5-20251001"></option>
@@ -43,9 +45,23 @@
             <option value="gpt-4o"></option>
           </datalist>
         </div>
+      </section>
+
+      <section class="card">
+        <h2>Explanation</h2>
+        <div class="field">
+          <label for="language">Response language</label>
+          <select id="language"></select>
+        </div>
+
+        <div class="field">
+          <label for="prompt">System prompt <span class="muted">— leave blank to use the default</span></label>
+          <textarea id="prompt" spellcheck="false"></textarea>
+        </div>
 
         <div class="row">
           <button id="save" class="primary">Save</button>
+          <button id="reset" class="danger" type="button">Reset prompt</button>
           <span id="status" class="status" role="status"></span>
         </div>
       </section>
@@ -53,13 +69,13 @@
       <section class="card subtle">
         <h2>Your data</h2>
         <p class="muted small">
-          doubleii has <b>no servers</b>. Your API key and your reading history are stored only on
-          this device (<code>chrome.storage.local</code>). When you ask for an explanation, the
-          highlighted text and surrounding article go <b>directly</b> from your browser to the
-          provider you chose above, using your key — nothing passes through doubleii.
+          doubleii has <b>no servers</b>. Your API key and reading history live only on this device
+          (<code>chrome.storage.local</code>). When you ask for an explanation, the highlighted text
+          and surrounding article go <b>directly</b> from your browser to the provider you chose —
+          nothing passes through doubleii.
         </p>
         <p class="row">
-          <a class="link" href="../history/history.html" target="_blank">Open history →</a>
+          <a class="link" href="../history/history.html" target="_blank">Open history</a>
           <a class="link muted" href="https://github.com/Lohomi15/doubleii" target="_blank">GitHub</a>
         </p>
       </section>
