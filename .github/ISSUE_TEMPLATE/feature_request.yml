@@ -1,0 +1,27 @@
+name: "💡 Idea / feature request"
+description: Suggest something — a feature, a provider, a UX tweak
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Got an idea for doubleii? Share it here — anything from a small UX tweak to a whole new capability is welcome.
+  - type: textarea
+    id: idea
+    attributes:
+      label: What's the idea?
+      placeholder: It would be great if doubleii could…
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does it solve?
+      description: What are you trying to do that's hard or annoying today?
+    validations:
+      required: false
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else?
+      description: Mockups, links to similar features elsewhere, edge cases, etc.

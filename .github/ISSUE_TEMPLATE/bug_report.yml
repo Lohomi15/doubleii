@@ -1,0 +1,51 @@
+name: "🐛 Bug report"
+description: Something isn't working as expected
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please **never paste your API key** or any secret in here.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, and what went wrong?
+      placeholder: I highlighted a line on <site> and pressed Alt+B, then…
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+      placeholder: I expected the bubble to show an explanation.
+    validations:
+      required: true
+  - type: dropdown
+    id: provider
+    attributes:
+      label: Provider
+      options:
+        - Anthropic
+        - OpenAI
+        - Not sure / not relevant
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser & version
+      placeholder: Chrome 126 / Brave 1.67 / Arc…
+    validations:
+      required: true
+  - type: input
+    id: site
+    attributes:
+      label: Site / page (if shareable)
+      placeholder: https://example.com/article
+  - type: textarea
+    id: console
+    attributes:
+      label: Console errors (optional)
+      description: Open DevTools → Console on the page and the extension's service worker, and paste any errors. Redact anything sensitive.
+      render: shell
