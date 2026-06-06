@@ -304,10 +304,12 @@
 
   function fontFaceCSS() {
     const inter = chrome.runtime.getURL("fonts/inter-var.woff2");
-    const playfair = chrome.runtime.getURL("fonts/playfair-600.woff2");
+    const pf400 = chrome.runtime.getURL("fonts/playfair-400.woff2");
+    const pf600 = chrome.runtime.getURL("fonts/playfair-600.woff2");
     return `
-      @font-face { font-family: 'doubleii-Sans'; font-weight: 400 600; font-display: swap; src: url(${inter}) format('woff2'); }
-      @font-face { font-family: 'doubleii-Serif'; font-weight: 600; font-display: swap; src: url(${playfair}) format('woff2'); }`;
+      @font-face { font-family: 'dii-Sans'; font-weight: 400 600; font-display: swap; src: url(${inter}) format('woff2'); }
+      @font-face { font-family: 'dii-Serif'; font-weight: 400; font-display: swap; src: url(${pf400}) format('woff2'); }
+      @font-face { font-family: 'dii-Serif'; font-weight: 600; font-display: swap; src: url(${pf600}) format('woff2'); }`;
   }
 
   const STYLES = `
@@ -316,7 +318,7 @@
 
     .dii-icon {
       position: fixed; display: inline-flex; align-items: center; gap: 6px;
-      font: 600 13px/1 'doubleii-Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      font: 600 13px/1 'dii-Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       letter-spacing: -0.01em; color: #ffffff; background: #000000; border: 0;
       border-radius: 9px; padding: 8px 11px; cursor: pointer;
       box-shadow: 0 4px 16px rgba(0,0,0,.28);
@@ -327,7 +329,7 @@
       position: fixed; width: 328px; max-width: 92vw;
       background: #181818; color: #f5f4f2; border: 1px solid rgba(255,255,255,.08);
       border-radius: 14px; box-shadow: 0 14px 44px rgba(0,0,0,.4); overflow: hidden;
-      font: 400 14px/1.6 'doubleii-Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      font: 400 14px/1.6 'dii-Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       letter-spacing: -0.003em;
     }
     .dii-head {
@@ -335,7 +337,7 @@
       padding: 11px 12px 9px 15px; border-bottom: 1px solid rgba(255,255,255,.07);
     }
     .dii-brand {
-      font: 600 16px/1 'doubleii-Serif', Georgia, serif; letter-spacing: -0.02em; color: #ffffff;
+      font: 600 16px/1 'dii-Serif', Georgia, serif; letter-spacing: -0.02em; color: #ffffff;
     }
     .dii-actions { display: inline-flex; gap: 2px; }
     .dii-btn {
@@ -359,12 +361,12 @@
 
     /* error state */
     .dii-err-label {
-      font: 400 10px/1 'doubleii-Sans', monospace; text-transform: uppercase;
+      font: 400 10px/1 'dii-Sans', monospace; text-transform: uppercase;
       letter-spacing: 0.14em; color: #9a9a9a; margin-bottom: 8px;
     }
     .dii-err-msg { color: #e8e6e2; margin-bottom: 13px; }
     .dii-action {
-      font: 600 12.5px/1 'doubleii-Sans', sans-serif; cursor: pointer;
+      font: 600 12.5px/1 'dii-Sans', sans-serif; cursor: pointer;
       background: #ffffff; color: #000000; border: 0; border-radius: 8px; padding: 9px 14px;
     }
     .dii-action:hover { background: #e8e6e2; }`;

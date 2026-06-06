@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>doubleii — an extra pair of AI-powered eyes</title>
+    <meta name="description" content="Highlight any line in any article and get a simple, context-aware explanation. Bring your own key. No servers." />
+    <meta property="og:title" content="doubleii" />
+    <meta property="og:description" content="An extra pair of AI-powered eyes. Highlight any line in any article and get a plain-language explanation." />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <style>
+/* ---- fonts ------------------------------------------------------------ */
+@font-face { font-family: "Playfair Display"; font-weight: 400; font-display: swap; src: url("fonts/playfair-400.woff2") format("woff2"); }
+@font-face { font-family: "Playfair Display"; font-weight: 600; font-display: swap; src: url("fonts/playfair-600.woff2") format("woff2"); }
+@font-face { font-family: "Playfair Display"; font-weight: 700; font-display: swap; src: url("fonts/playfair-700.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-weight: 400 600; font-display: swap; src: url("fonts/inter-var.woff2") format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-weight: 400; font-display: swap; src: url("fonts/jetbrains-400.woff2") format("woff2"); }
+
+/* ---- tokens ----------------------------------------------------------- */
+:root {
+  --paper:  #ffffff;
+  --bg:     #f5f4f2;
+  --bg2:    #eeecea;
+  --ink:    #000000;
+  --carbon: #181818;
+  --ash:    #6d6d6d;
+  --smoke:  #9a9a9a;
+  --line:   rgba(0,0,0,.10);
+  --serif:  "Playfair Display", Georgia, serif;
+  --sans:   "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --mono:   "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* ---- reset ------------------------------------------------------------ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg); color: var(--carbon);
+  font: 400 16px/1.6 var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+img { display: block; max-width: 100%; }
+
+/* ---- layout helpers --------------------------------------------------- */
+.container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+.mono-label {
+  font: 400 11px/1 var(--mono); text-transform: uppercase;
+  letter-spacing: 0.13em; color: var(--ash);
+}
+
+/* ---- nav -------------------------------------------------------------- */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(245,244,242,.92); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+.nav-inner {
+  max-width: 1100px; margin: 0 auto; padding: 0 24px;
+  height: 56px; display: flex; align-items: center; justify-content: space-between;
+}
+.nav-logo {
+  display: flex; align-items: center; gap: 10px;
+  font: 600 19px/1 var(--serif); letter-spacing: -0.02em; color: var(--ink);
+}
+.nav-logo-mark {
+  width: 30px; height: 30px; border-radius: 7px; background: var(--ink);
+  position: relative; flex: none;
+}
+.nav-logo-mark::before, .nav-logo-mark::after {
+  content: ""; position: absolute; top: 50%;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--paper); transform: translateY(-50%);
+}
+.nav-logo-mark::before { left: 7px; }
+.nav-logo-mark::after  { right: 7px; }
+.nav-links { display: flex; align-items: center; gap: 10px; }
+.nav-links a {
+  font-size: 13.5px; color: var(--ash); padding: 6px 10px; border-radius: 7px;
+}
+.nav-links a:hover { color: var(--ink); background: rgba(0,0,0,.05); }
+.nav-cta {
+  font: 600 13px/1 var(--sans); color: var(--paper); background: var(--ink);
+  padding: 9px 15px; border-radius: 9px; border: 1px solid var(--ink);
+  display: inline-flex; align-items: center; gap: 7px;
+}
+.nav-cta:hover { background: var(--carbon); }
+
+/* ---- hero ------------------------------------------------------------- */
+.hero {
+  padding: 80px 24px 72px;
+  text-align: center; max-width: 760px; margin: 0 auto;
+}
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font: 400 11px/1 var(--mono); text-transform: uppercase; letter-spacing: 0.13em;
+  color: var(--ash); margin-bottom: 28px;
+}
+.hero-eyebrow::before, .hero-eyebrow::after {
+  content: ""; display: inline-block; width: 20px; height: 1px; background: var(--smoke);
+}
+h1 {
+  font: 700 64px/1.05 var(--serif); letter-spacing: -0.025em; color: var(--ink);
+  margin-bottom: 22px;
+}
+@media (max-width: 600px) { h1 { font-size: 40px; } }
+.hero-sub {
+  font-size: 18px; line-height: 1.55; color: var(--ash); max-width: 540px;
+  margin: 0 auto 38px;
+}
+.hero-actions {
+  display: flex; align-items: center; justify-content: center;
+  gap: 12px; flex-wrap: wrap;
+}
+.btn-primary {
+  font: 600 14px/1 var(--sans); color: var(--paper); background: var(--ink);
+  padding: 13px 22px; border-radius: 10px; border: 1px solid var(--ink);
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.btn-primary:hover { background: var(--carbon); }
+.btn-ghost {
+  font: 600 14px/1 var(--sans); color: var(--ink);
+  padding: 13px 22px; border-radius: 10px; border: 1px solid rgba(0,0,0,.28);
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.btn-ghost:hover { background: rgba(0,0,0,.05); }
+
+/* ---- bubble demo ------------------------------------------------------ */
+.demo-area {
+  max-width: 700px; margin: 0 auto 80px; padding: 0 24px;
+}
+.demo-article {
+  background: var(--paper); border: 1px solid var(--line); border-radius: 16px;
+  padding: 28px 30px; position: relative;
+}
+.demo-article p { font-size: 15px; line-height: 1.7; color: var(--carbon); }
+.demo-highlight {
+  background: rgba(0,0,0,.09); border-radius: 3px; padding: 1px 3px;
+  font-weight: 600; color: var(--ink);
+}
+.demo-bubble {
+  position: absolute; right: -10px; top: 50%; transform: translateY(-50%);
+  width: 270px; background: var(--carbon); color: #f5f4f2;
+  border: 1px solid rgba(255,255,255,.08); border-radius: 12px;
+  box-shadow: 0 12px 36px rgba(0,0,0,.32); overflow: hidden;
+  font: 400 13px/1.55 var(--sans);
+}
+.demo-bubble-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 11px 7px 13px; border-bottom: 1px solid rgba(255,255,255,.07);
+}
+.demo-bubble-brand { font: 600 14px/1 var(--serif); letter-spacing: -0.02em; }
+.demo-bubble-close { color: #808080; font-size: 15px; line-height: 1; }
+.demo-bubble-body { padding: 11px 13px 13px; }
+@media (max-width: 800px) {
+  .demo-bubble { position: static; transform: none; width: 100%; margin-top: 16px; }
+  .demo-article { border-radius: 16px 16px 0 0; border-bottom: 0; }
+}
+
+/* ---- divider ---------------------------------------------------------- */
+.divider { max-width: 1100px; margin: 0 auto; border: 0; border-top: 1px solid var(--line); }
+
+/* ---- how it works ----------------------------------------------------- */
+.hiw { padding: 80px 24px; max-width: 1100px; margin: 0 auto; }
+.hiw-header { margin-bottom: 52px; }
+.hiw-header .mono-label { margin-bottom: 14px; }
+.hiw-heading {
+  font: 700 44px/1.1 var(--serif); letter-spacing: -0.025em; color: var(--ink);
+  max-width: 520px;
+}
+@media (max-width: 600px) { .hiw-heading { font-size: 30px; } }
+
+.hiw-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 720px) { .hiw-grid { grid-template-columns: 1fr; } }
+
+.step-card {
+  background: var(--paper); border: 1px solid var(--line); border-radius: 16px;
+  padding: 26px; display: flex; flex-direction: column; gap: 14px;
+}
+.step-num {
+  width: 28px; height: 28px; border-radius: 50%; background: var(--ink);
+  color: var(--paper); font: 600 12px/28px var(--mono); text-align: center;
+  flex: none;
+}
+.step-title { font: 600 17px/1.3 var(--serif); color: var(--ink); }
+.step-body  { font-size: 14px; line-height: 1.6; color: var(--ash); }
+
+/* keycap bento inside how it works */
+.keycap-bento { grid-column: span 2; }
+@media (max-width: 720px) { .keycap-bento { grid-column: span 1; } }
+.keycap-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px; height: 100%;
+}
+@media (max-width: 500px) { .keycap-row { grid-template-columns: 1fr; } }
+.keycap-cell {
+  background: var(--bg2); border: 1px solid var(--line); border-radius: 14px;
+  padding: 26px; display: flex; flex-direction: column; align-items: flex-start; gap: 16px;
+}
+.keycap-os { font: 400 11px/1 var(--mono); text-transform: uppercase; letter-spacing: 0.12em; color: var(--smoke); }
+.keycap-combo { display: flex; align-items: center; gap: 8px; }
+.keycap {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--paper); border: 1px solid rgba(0,0,0,.22);
+  border-bottom: 3px solid rgba(0,0,0,.22);
+  border-radius: 7px; padding: 8px 12px; min-width: 44px; height: 44px;
+  font: 600 15px/1 var(--sans); color: var(--ink);
+  box-shadow: 0 2px 0 rgba(0,0,0,.12);
+}
+.keycap.wide { min-width: 80px; font-size: 13px; letter-spacing: 0.01em; }
+.keycap-plus { font: 400 18px/1 var(--sans); color: var(--smoke); }
+.keycap-desc { font-size: 13px; line-height: 1.5; color: var(--ash); }
+
+/* ---- bento features --------------------------------------------------- */
+.features { padding: 0 24px 80px; max-width: 1100px; margin: 0 auto; }
+.features-heading {
+  font: 700 44px/1.1 var(--serif); letter-spacing: -0.025em; color: var(--ink);
+  margin-bottom: 36px; max-width: 500px;
+}
+@media (max-width: 600px) { .features-heading { font-size: 30px; } }
+.bento { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+@media (max-width: 860px) { .bento { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 500px) { .bento { grid-template-columns: 1fr; } }
+.bento-card {
+  background: var(--paper); border: 1px solid var(--line); border-radius: 16px;
+  padding: 24px; display: flex; flex-direction: column; gap: 10px;
+}
+.bento-card.dark { background: var(--carbon); border-color: transparent; color: #f5f4f2; }
+.bento-card.wide { grid-column: span 2; }
+@media (max-width: 860px) { .bento-card.wide { grid-column: span 1; } }
+.bento-icon { font-size: 22px; line-height: 1; }
+.bento-title { font: 600 16px/1.3 var(--serif); color: inherit; }
+.bento-body  { font-size: 13.5px; line-height: 1.6; color: var(--ash); }
+.bento-card.dark .bento-body { color: #9a9a9a; }
+.bento-pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--ink); color: var(--paper); border-radius: 99px;
+  padding: 8px 13px; font: 600 12.5px/1 var(--sans); margin-top: 8px;
+}
+.bento-pill svg { flex: none; }
+.bento-tag {
+  display: inline-block; font: 400 11px/1 var(--mono); text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--paper); background: rgba(255,255,255,.15);
+  border-radius: 6px; padding: 4px 8px;
+}
+
+/* ---- privacy section -------------------------------------------------- */
+.privacy-section {
+  background: var(--ink); color: #f5f4f2;
+  padding: 80px 24px;
+}
+.privacy-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; }
+@media (max-width: 720px) { .privacy-inner { grid-template-columns: 1fr; gap: 36px; } }
+.privacy-heading {
+  font: 700 44px/1.1 var(--serif); letter-spacing: -0.025em; color: #fff;
+  margin-bottom: 16px;
+}
+@media (max-width: 600px) { .privacy-heading { font-size: 30px; } }
+.privacy-sub { font-size: 15px; line-height: 1.65; color: #9a9a9a; }
+.privacy-points { display: flex; flex-direction: column; gap: 20px; margin-top: 4px; }
+.privacy-point { display: flex; gap: 14px; align-items: flex-start; }
+.privacy-point-num {
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.2); color: #9a9a9a;
+  font: 400 11px/24px var(--mono); text-align: center; flex: none;
+}
+.privacy-point-text { font-size: 14px; line-height: 1.6; color: #c8c6c2; }
+.privacy-point-text strong { color: #fff; }
+
+/* ---- install ---------------------------------------------------------- */
+.install { padding: 80px 24px; max-width: 780px; margin: 0 auto; text-align: center; }
+.install-heading {
+  font: 700 44px/1.1 var(--serif); letter-spacing: -0.025em; color: var(--ink);
+  margin-bottom: 14px;
+}
+@media (max-width: 600px) { .install-heading { font-size: 30px; } }
+.install-sub { font-size: 16px; color: var(--ash); margin-bottom: 36px; }
+.install-steps {
+  text-align: left; display: flex; flex-direction: column; gap: 0;
+  border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+  margin-bottom: 36px;
+}
+.install-step {
+  display: flex; gap: 16px; align-items: baseline;
+  padding: 18px 22px; border-bottom: 1px solid var(--line);
+  background: var(--paper);
+}
+.install-step:last-child { border-bottom: 0; }
+.install-step-num {
+  font: 600 12px/1 var(--mono); color: var(--smoke); flex: none; width: 18px;
+}
+.install-step-text { font-size: 14.5px; line-height: 1.6; color: var(--carbon); }
+.install-step-text code {
+  font-family: var(--mono); background: rgba(0,0,0,.07);
+  padding: 1px 6px; border-radius: 5px; font-size: 13px;
+}
+.install-actions { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+
+/* ---- footer ----------------------------------------------------------- */
+footer {
+  border-top: 1px solid var(--line);
+  padding: 28px 24px;
+}
+.footer-inner {
+  max-width: 1100px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;
+}
+.footer-brand { font: 600 16px/1 var(--serif); letter-spacing: -0.02em; color: var(--ink); }
+.footer-links { display: flex; gap: 20px; }
+.footer-links a { font-size: 13px; color: var(--ash); }
+.footer-links a:hover { color: var(--ink); }
+.footer-note { font: 400 12px/1 var(--mono); color: var(--smoke); }
+
+    </style>
+  </head>
+  <body>
+
+    <!-- nav -->
+    <nav>
+      <div class="nav-inner">
+        <a href="/" class="nav-logo">
+          <span class="nav-logo-mark"></span>
+          doubleii
+        </a>
+        <div class="nav-links">
+          <a href="#how-it-works">How it works</a>
+          <a href="#privacy">Privacy</a>
+          <a href="https://github.com/Lohomi15/doubleii" target="_blank" rel="noreferrer">
+            GitHub ↗
+          </a>
+          <a href="https://github.com/Lohomi15/doubleii#install-chrome--brave--edge--arc" class="nav-cta" target="_blank">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2L12 16M6 10l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 20h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            Get Extension
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- hero -->
+    <section>
+      <div class="hero">
+        <div class="hero-eyebrow">Free · Open Source · Bring Your Own Key</div>
+        <h1>An extra pair of eyes for anything you read.</h1>
+        <p class="hero-sub">
+          Highlight any line in any article. doubleii reads the surrounding
+          context and explains it back to you — in plain language,
+          right where you are.
+        </p>
+        <div class="hero-actions">
+          <a class="btn-primary" href="https://github.com/Lohomi15/doubleii#install-chrome--brave--edge--arc" target="_blank" rel="noreferrer">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 2L12 16M6 10l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 20h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            Get for Chrome / Brave
+          </a>
+          <a class="btn-ghost" href="https://github.com/Lohomi15/doubleii" target="_blank" rel="noreferrer">
+            View on GitHub
+          </a>
+        </div>
+      </div>
+
+      <!-- inline demo mockup -->
+      <div class="demo-area">
+        <div class="demo-article">
+          <p>
+            The Transformer architecture replaced the need for recurrence by
+            introducing self-attention, allowing every token in a sequence to
+            directly attend to every other token in parallel.
+            <span class="demo-highlight">Memory-efficient pipeline reuse enabling
+            multiple model types on a single GPU</span> means the inference
+            server doesn't need to load an entirely new model for each request.
+          </p>
+          <div class="demo-bubble">
+            <div class="demo-bubble-head">
+              <span class="demo-bubble-brand">doubleii</span>
+              <span class="demo-bubble-close">×</span>
+            </div>
+            <div class="demo-bubble-body">
+              It means one GPU can run several different AI models at once by
+              smartly reusing memory between them — instead of loading a whole
+              new model for each request, which saves cost and time.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- how it works -->
+    <section id="how-it-works">
+      <div class="hiw">
+        <div class="hiw-header">
+          <div class="mono-label">How it works</div>
+          <h2 class="hiw-heading" style="font:700 44px/1.1 var(--serif);letter-spacing:-.025em;color:var(--ink);margin-top:14px;">
+            Three steps.<br>No copy-paste.
+          </h2>
+        </div>
+
+        <div class="hiw-grid">
+          <div class="step-card">
+            <div class="step-num">1</div>
+            <div class="step-title">Highlight the line you don't get</div>
+            <p class="step-body">Select any passage in any article — a jargon term, a dense sentence, an unexplained acronym. Works on any website.</p>
+          </div>
+          <div class="step-card">
+            <div class="step-num">2</div>
+            <div class="step-title">Click Explain, or use the shortcut</div>
+            <p class="step-body">A small Explain button appears near your selection. Click it — or use the keyboard shortcut — and a shimmer tells you doubleii is thinking.</p>
+          </div>
+          <div class="step-card">
+            <div class="step-num">3</div>
+            <div class="step-title">Read the explanation in context</div>
+            <p class="step-body">doubleii reads the full article around your selection and explains only the highlighted line in plain language — no generic dictionary definitions.</p>
+          </div>
+
+          <!-- keycap bento -->
+          <div class="step-card keycap-bento" style="gap:20px;">
+            <div class="step-num" style="background:transparent;border:1px solid rgba(0,0,0,.15);color:var(--ink);">⌨</div>
+            <div class="step-title">The shortcut</div>
+            <div class="keycap-row">
+              <div class="keycap-cell">
+                <div class="keycap-os">macOS</div>
+                <div class="keycap-combo">
+                  <span class="keycap wide">⌥ Option</span>
+                  <span class="keycap-plus">+</span>
+                  <span class="keycap">B</span>
+                </div>
+                <p class="keycap-desc">Highlight text, then press Option+B to explain instantly.</p>
+              </div>
+              <div class="keycap-cell">
+                <div class="keycap-os">Windows / Linux</div>
+                <div class="keycap-combo">
+                  <span class="keycap wide">Alt</span>
+                  <span class="keycap-plus">+</span>
+                  <span class="keycap">B</span>
+                </div>
+                <p class="keycap-desc">Highlight text, then press Alt+B to explain instantly.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="divider" />
+
+    <!-- bento features -->
+    <section>
+      <div class="features">
+        <h2 class="features-heading">Built to stay out of your way.</h2>
+        <div class="bento">
+          <div class="bento-card dark wide">
+            <div class="bento-icon">👁</div>
+            <div class="bento-title">Context-aware, not generic</div>
+            <p class="bento-body">doubleii reads the surrounding article so the explanation is specific to what you're actually reading — not a Wikipedia definition lifted out of context.</p>
+            <div>
+              <span class="bento-tag">READABILITY EXTRACTION</span>
+            </div>
+          </div>
+          <div class="bento-card">
+            <div class="bento-icon">🔑</div>
+            <div class="bento-title">Bring your own key</div>
+            <p class="bento-body">Use your Anthropic or OpenAI key. Your key stays in your browser — it's never transmitted to a doubleii server (there isn't one).</p>
+          </div>
+          <div class="bento-card">
+            <div class="bento-icon">🌐</div>
+            <div class="bento-title">Any language</div>
+            <p class="bento-body">Get explanations in English, Hindi, Japanese, Korean, Spanish, Chinese, or French. Set it once in Settings.</p>
+          </div>
+          <div class="bento-card">
+            <div class="bento-icon">📖</div>
+            <div class="bento-title">Local reading history</div>
+            <p class="bento-body">Every explanation is saved on your device. Come back later, see what you asked, and click "Open article" to jump straight back to the exact line.</p>
+            <div>
+              <div class="bento-pill">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+                Stored locally only
+              </div>
+            </div>
+          </div>
+          <div class="bento-card">
+            <div class="bento-icon">✏️</div>
+            <div class="bento-title">Editable system prompt</div>
+            <p class="bento-body">Want a different tone? Edit the prompt in Settings. Leave it blank to use the built-in "plain language" default.</p>
+          </div>
+          <div class="bento-card">
+            <div class="bento-icon">⚡</div>
+            <div class="bento-title">No build step</div>
+            <p class="bento-body">Plain JS, no bundler. Load unpacked in Chrome. Edit a file, hit reload on the extensions page. That's it.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- privacy -->
+    <section id="privacy" class="privacy-section">
+      <div class="privacy-inner">
+        <div>
+          <h2 class="privacy-heading">Your data belongs to you.</h2>
+          <p class="privacy-sub">
+            doubleii was designed with a simple rule: if it doesn't need
+            to see your data, it doesn't. And since there's no server, there's
+            nothing to leak.
+          </p>
+        </div>
+        <div class="privacy-points">
+          <div class="privacy-point">
+            <div class="privacy-point-num">1</div>
+            <p class="privacy-point-text"><strong>doubleii has no servers.</strong> There is no backend. We never receive your text, your key, or your history.</p>
+          </div>
+          <div class="privacy-point">
+            <div class="privacy-point-num">2</div>
+            <p class="privacy-point-text"><strong>Your API key stays on your device</strong> — stored in <code style="font-family:var(--mono);font-size:12.5px;background:rgba(255,255,255,.1);padding:1px 5px;border-radius:4px;">chrome.storage.local</code>, only ever sent in the Authorization header of the call you make.</p>
+          </div>
+          <div class="privacy-point">
+            <div class="privacy-point-num">3</div>
+            <p class="privacy-point-text"><strong>Your history stays on your device too.</strong> Local only, never synced.</p>
+          </div>
+          <div class="privacy-point">
+            <div class="privacy-point-num">4</div>
+            <p class="privacy-point-text">The highlighted text and article context go <strong>directly</strong> from your browser to the AI provider you chose, using your key. Paid API tiers generally don't train on your data.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- install -->
+    <section>
+      <div class="install">
+        <h2 class="install-heading">Get started in two minutes.</h2>
+        <p class="install-sub">No account. No subscription. Just clone, load, and add a key.</p>
+        <div class="install-steps">
+          <div class="install-step">
+            <span class="install-step-num">1</span>
+            <span class="install-step-text">Clone the repo or download the ZIP from GitHub.</span>
+          </div>
+          <div class="install-step">
+            <span class="install-step-num">2</span>
+            <span class="install-step-text">Open <code>chrome://extensions</code>, enable <b>Developer mode</b>, and click <b>Load unpacked</b>.</span>
+          </div>
+          <div class="install-step">
+            <span class="install-step-num">3</span>
+            <span class="install-step-text">Click the doubleii icon → <b>Settings</b>, choose Anthropic or OpenAI, and paste your API key.</span>
+          </div>
+          <div class="install-step">
+            <span class="install-step-num">4</span>
+            <span class="install-step-text">Open any article, highlight a line, and press <b>⌥B</b> (Mac) or <b>Alt+B</b> (Windows).</span>
+          </div>
+        </div>
+        <div class="install-actions">
+          <a class="btn-primary" href="https://github.com/Lohomi15/doubleii" target="_blank" rel="noreferrer">
+            View on GitHub →
+          </a>
+          <a class="btn-ghost" href="https://github.com/Lohomi15/doubleii/issues" target="_blank" rel="noreferrer">
+            Open an issue
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- footer -->
+    <footer>
+      <div class="footer-inner">
+        <span class="footer-brand">doubleii</span>
+        <div class="footer-links">
+          <a href="https://github.com/Lohomi15/doubleii" target="_blank">GitHub</a>
+          <a href="https://github.com/Lohomi15/doubleii/issues" target="_blank">Issues</a>
+          <a href="https://github.com/Lohomi15/doubleii/blob/main/LICENSE" target="_blank">MIT License</a>
+        </div>
+        <span class="footer-note">No servers · No tracking · Open source</span>
+      </div>
+    </footer>
+
+  </body>
+</html>

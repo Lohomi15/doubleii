@@ -8,7 +8,7 @@ import os
 import struct
 import zlib
 
-BG = (79, 70, 229)      # indigo-600
+BG = (0, 0, 0)           # ink-black
 EYE = (255, 255, 255)    # white
 SIZES = (16, 48, 128)
 OUT_DIR = os.path.join(os.path.dirname(__file__), "..", "icons")
