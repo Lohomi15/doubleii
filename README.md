@@ -1,121 +1,146 @@
-<div align="center">
+# doubleii
 
-# 👀 doubleii
-
-**An extra pair of AI-powered eyes for whatever you're reading.**
+**An extra pair of AI-powered eyes for anything you read.**
 
 Highlight any line in any article and get a simple, context-aware explanation —
-right where you're reading it. Bring your own key. No servers, no tracking.
+right where you're reading, in a floating bubble. Bring your own key. No servers.
 
-</div>
+**Website:** https://lohomi15.github.io/doubleii  
+**Shortcut:** ⌥B on Mac · Alt+B on Windows/Linux
 
 ---
 
 ## The problem
 
-You're reading an article, a post, a docs page. You get the broad idea, but one
-or two specific lines don't land. Today you'd copy that line, switch to an LLM,
-paste it, add context, and ask. doubleii collapses that into: **highlight → explain.**
+You're reading an article and most of it lands — but one or two specific
+sentences don't. Today you'd copy those lines, switch to an LLM, paste them,
+provide context, and ask. doubleii collapses that into: **highlight → ⌥B →
+read the answer.**
 
-Chat apps already solve this for their own replies (the "ask follow-up" button).
-**Articles on the internet don't.** That's the gap doubleii fills.
+Chat apps already solve this for their own replies ("ask follow-up"). Articles
+on the open web don't have that. That's the gap doubleii fills.
 
 ## How it works
 
-1. Select a line in any article.
-2. A small **Explain** button appears (or press **Alt+B**, or right-click → *Explain with doubleii*).
-3. doubleii reads the surrounding article for context and asks your chosen model
-   to explain *that line* in plain language.
-4. The answer appears in a floating bubble, and is saved to your local **History**.
+1. Select any line in any article.
+2. A small **Explain** button appears near your selection. Click it, press
+   **⌥B** (Mac) or **Alt+B** (Windows), or right-click → *Explain with doubleii*.
+3. doubleii reads the surrounding article for context and sends the highlighted
+   passage to your chosen model.
+4. The explanation appears in a floating bubble. It's also saved to your local
+   **History** with a link back to the exact line.
 
-The explanation is written for "simple language that anyone with a decent
-general education can understand" — not a generic dictionary definition, but an
-explanation grounded in *what you're actually reading*.
-
-In **Settings** you can choose your **provider** (Anthropic or OpenAI), the
+In **Settings** you can choose the **provider** (Anthropic or OpenAI), the
 **response language** (English, Hindi, Japanese, Korean, Spanish, Chinese,
-French), and edit the **system prompt** if you want to change how explanations
-are written (leave it blank to use the default).
+French), and edit the **system prompt** (leave blank to use the default).
 
-## Your data & privacy
-
-This is the important part, and it's deliberately simple:
+## Privacy
 
 - **doubleii has no servers.** There is no backend. We never receive your text,
-  your key, or your history. There's nothing to leak.
-- **Your API key stays on your device** (`chrome.storage.local`). It's only ever
-  sent in the `Authorization` header of the request *you* make to the provider
-  *you* chose.
-- **Your reading history stays on your device too** — local only, never synced.
-- **What does leave your browser:** the line you highlighted plus the surrounding
-  article context go **directly** from your browser to your chosen AI provider
-  (Anthropic or OpenAI), using your key. To explain a line, the model has to see
-  it. Those providers' API data policies apply (paid API tiers generally don't
-  train on your data by default).
-
-> TL;DR — doubleii never sees your data. Your text goes straight from your
-> browser to the AI provider you picked, with your own key.
+  key, or history. Nothing to leak.
+- **Your API key stays on your device** — stored in `chrome.storage.local`,
+  only ever used in the `Authorization` header of the call *you* make to the
+  provider *you* chose.
+- **Your reading history stays on your device** — local only, never synced.
+- The highlighted text and article context go **directly** from your browser to
+  your chosen provider, using your own key. Paid API tiers generally don't train
+  on your data by default.
 
 ## Install (Chrome / Brave / Edge / Arc)
 
-doubleii is an unpacked extension while in development:
+doubleii loads as an unpacked extension — no store listing yet.
 
-1. Clone this repo.
-2. (Optional) regenerate placeholder icons: `python3 tools/make_icons.py`
-3. Open `chrome://extensions`, turn on **Developer mode** (top right).
-4. Click **Load unpacked** and select the project folder.
-5. Click the doubleii toolbar icon → **Settings**, choose a provider, and paste
-   your API key:
-   - Anthropic: https://console.anthropic.com/settings/keys
-   - OpenAI: https://platform.openai.com/api-keys
-6. Open any article, highlight a line, and press **Alt+B**.
+```
+1. Clone this repo (or download the ZIP)
+2. Open chrome://extensions, enable Developer mode (top right)
+3. Click Load unpacked → select the project folder
+4. Click the doubleii icon → Settings → paste your API key
+5. Open any article, highlight a line, press ⌥B (Mac) or Alt+B (Windows)
+```
 
-**Local HTML files:** to use doubleii on `file://` pages, enable
-*"Allow access to file URLs"* on the doubleii card in `chrome://extensions`.
+**API key sources:**
+- Anthropic → https://console.anthropic.com/settings/keys
+- OpenAI    → https://platform.openai.com/api-keys
 
-> **Safari** support (via an Xcode app wrapper) and **PDF** support are on the
-> roadmap, not in this version.
+**Local HTML files:** enable *"Allow access to file URLs"* on the doubleii card
+at `chrome://extensions`.
+
+> Safari (via Xcode app wrapper) and PDF support are on the roadmap.
 
 ## Architecture
 
 ```
-manifest.json            MV3 manifest (content script, SW, popup, options)
+manifest.json              Manifest V3 — permissions, commands, content script
 src/
-  content/content.js     Selection detection, context extraction, floating bubble (Shadow DOM)
+  content/content.js       Runs on every page. Detects selections, extracts
+                           article context (nearest article/main + windowed
+                           fallback), renders the floating bubble via Shadow DOM
   background/
-    service-worker.js    Holds the key, calls the provider, saves history
+    service-worker.js      Extension's private backend. Holds the API key,
+                           routes provider calls, saves history. Never exposed
+                           to the page.
   lib/
-    providers.js         Anthropic + OpenAI API calls
-    prompt.js            System + user prompt construction
-    storage.js           chrome.storage.local wrappers (settings + history)
-  options/               Settings page (provider, key, model)
-  popup/                 Toolbar popup (status + links)
-  history/               Local history of past asks
+    providers.js           Anthropic + OpenAI fetch calls with typed error codes
+    prompt.js              System prompt, default text, language composer
+    storage.js             chrome.storage.local wrappers (settings + history)
+  options/                 Settings page (provider, key, model, language, prompt)
+  popup/                   Toolbar icon popup (status + links to settings/history)
+  history/                 Local history page — card stack, "Open article" links
+fonts/                     Self-hosted Inter, Playfair Display, JetBrains Mono
+                           (latin subset, SIL OFL)
+docs/                      GitHub Pages landing page
+tools/make_icons.py        Generates placeholder extension icons
 ```
 
-**Why the key lives in the service worker, not the content script:** content
-scripts share the page with the site's own JavaScript, so keeping the key out of
-that context is safer. The service worker is also allowed to call the provider
-APIs cross-origin (via `host_permissions`) without CORS problems.
+**Why the key lives in the service worker, not the content script:**
+Content scripts run inside the page and share that JS context — a rogue page
+script could in principle inspect them. The service worker is isolated. It also
+gets `host_permissions` CORS bypass to call `api.anthropic.com` and
+`api.openai.com` directly from the browser without a proxy.
+
+**Why Shadow DOM for the bubble:**
+The bubble injects HTML into millions of different pages. Shadow DOM creates a
+complete style boundary so no page stylesheet can break the bubble's layout, and
+the bubble can't accidentally inherit the page's fonts, colors, or resets.
+
+## Development
+
+No build step. Plain ES modules.
+
+```bash
+# After cloning, load immediately:
+# chrome://extensions → Developer mode → Load unpacked → select this folder
+
+# To iterate: edit a file, then hit the reload icon on the extension card.
+
+# Regenerate icons (after changing BG/EYE colours in the script):
+python3 tools/make_icons.py
+```
 
 ## Roadmap
 
-- Streaming token-by-token answers
-- Configurable trigger key (Wispr/Linear-style)
-- Local model support (Ollama) for fully offline use
-- Safari (Xcode wrapper) and in-page PDF support
+Issues are tracked on GitHub. Current priorities:
+
+- [#1] Stream the explanation token-by-token
+- [#2] Configurable trigger key (Wispr/Linear style)
+- [#3] Local model support via Ollama (fully offline)
+- [#4] Swap heuristic context extraction for Readability.js
+- [#5] Adjustable explanation depth (simpler / more detail)
+- [#6] Safari support via Xcode wrapper
+- [#8] Replace placeholder icons with real branding
 
 ## Contributing
 
-Issues and PRs welcome. Please **never commit API keys** or other secrets — see
-`.gitignore`. Keys belong only in your local extension settings.
+Issues and PRs are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+**Never commit API keys or secrets** — keys belong only in your local extension
+settings. The `.gitignore` blocks `.env` and common secret file patterns.
 
 ## Fonts
 
-The UI bundles three open-source fonts (latin subset, self-hosted so it works
-offline), each under the SIL Open Font License: **Inter**, **Playfair Display**,
-and **JetBrains Mono**.
+Self-hosted latin-subset woff2 files, each under the SIL Open Font License:
+**Inter**, **Playfair Display** (400, 600, 700), **JetBrains Mono**.
 
 ## License
 
-[MIT](LICENSE) (doubleii's own code). Bundled fonts are under the SIL OFL.
+[MIT](LICENSE) — doubleii's own code. Bundled fonts are under the SIL OFL.
