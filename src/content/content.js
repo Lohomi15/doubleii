@@ -307,6 +307,7 @@
     const body = bodyEl();
     if (!body) return;
     body.className = "dii-body";
+    body.innerHTML = ""; // clear the thinking shimmer
 
     const expl = document.createElement("div");
     expl.className = "dii-expl";
@@ -322,9 +323,10 @@
         : String(totalTokens);
       const cost = meta?.cost || 0;
       const cStr = cost < 0.0001 ? "<$0.0001" : `$${cost.toFixed(4)}`;
+      const extIcon = `<svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true" style="display:inline-block;vertical-align:middle;margin-left:3px;margin-bottom:1px"><path d="M5 2H2a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M8 1h3m0 0v3m0-3L6 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
       footer.innerHTML =
         `<span class="dii-cost-num">${tStr} tokens · ${cStr}</span>` +
-        `<button class="dii-cost-link">View usage ↗</button>`;
+        `<button class="dii-cost-link">Total cost${extIcon}</button>`;
       footer.querySelector(".dii-cost-link").addEventListener("click", () => {
         try { chrome.runtime.sendMessage({ type: "doubleii:open-options" }); } catch {}
       });
