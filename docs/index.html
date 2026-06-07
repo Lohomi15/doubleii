@@ -171,8 +171,8 @@ h1 {
 }
 @media (max-width: 600px) { .hiw-heading { font-size: 30px; } }
 
-.hiw-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-@media (max-width: 720px) { .hiw-grid { grid-template-columns: 1fr; } }
+.hiw-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+@media (max-width: 860px) { .hiw-grid { grid-template-columns: 1fr; } }
 
 .step-card {
   background: var(--paper); border: 1px solid var(--line); border-radius: 16px;
@@ -187,8 +187,8 @@ h1 {
 .step-body  { font-size: 14px; line-height: 1.6; color: var(--ash); }
 
 /* keycap bento inside how it works */
-.keycap-bento { grid-column: span 2; }
-@media (max-width: 720px) { .keycap-bento { grid-column: span 1; } }
+.keycap-bento { grid-column: span 3; }
+@media (max-width: 860px) { .keycap-bento { grid-column: span 1; } }
 .keycap-row {
   display: grid; grid-template-columns: 1fr 1fr; gap: 16px; height: 100%;
 }
@@ -225,25 +225,35 @@ h1 {
 .bento-card {
   background: var(--paper); border: 1px solid var(--line); border-radius: 16px;
   padding: 24px; display: flex; flex-direction: column; gap: 10px;
+  transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+  cursor: default;
 }
-.bento-card.dark { background: var(--carbon); border-color: transparent; color: #f5f4f2; }
+.bento-card:hover {
+  background: var(--carbon); border-color: transparent; color: #f5f4f2;
+}
 .bento-card.wide { grid-column: span 2; }
-@media (max-width: 860px) { .bento-card.wide { grid-column: span 1; } }
+.bento-card.full { grid-column: span 3; flex-direction: row; align-items: center; gap: 32px; }
+.bento-card.full .bento-text { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+@media (max-width: 860px) { .bento-card.wide { grid-column: span 1; } .bento-card.full { grid-column: span 1; flex-direction: column; align-items: flex-start; gap: 10px; } }
 .bento-icon { font-size: 22px; line-height: 1; }
 .bento-title { font: 600 16px/1.55 var(--serif); letter-spacing: 0.005em; color: inherit; }
-.bento-body  { font-size: 13.5px; line-height: 1.6; color: var(--ash); }
-.bento-card.dark .bento-body { color: #9a9a9a; }
+.bento-body  { font-size: 13.5px; line-height: 1.6; color: var(--ash); transition: color 0.25s ease; }
+.bento-card:hover .bento-body { color: #9a9a9a; }
 .bento-pill {
   display: inline-flex; align-items: center; gap: 7px;
   background: var(--ink); color: var(--paper); border-radius: 99px;
   padding: 8px 13px; font: 600 12.5px/1 var(--sans); margin-top: 8px;
+  transition: background 0.25s ease, color 0.25s ease;
 }
+.bento-card:hover .bento-pill { background: rgba(255,255,255,.15); color: #f5f4f2; }
 .bento-pill svg { flex: none; }
 .bento-tag {
   display: inline-block; font: 400 11px/1 var(--mono); text-transform: uppercase;
-  letter-spacing: 0.1em; color: var(--paper); background: rgba(255,255,255,.15);
+  letter-spacing: 0.1em; color: var(--ash); background: rgba(0,0,0,.07);
   border-radius: 6px; padding: 4px 8px;
+  transition: background 0.25s ease, color 0.25s ease;
 }
+.bento-card:hover .bento-tag { background: rgba(255,255,255,.15); color: #f5f4f2; }
 
 /* ---- privacy section -------------------------------------------------- */
 .privacy-section {
@@ -415,7 +425,9 @@ footer {
 
           <!-- keycap bento -->
           <div class="step-card keycap-bento" style="gap:20px;">
-            <div class="step-num" style="background:transparent;border:1px solid rgba(0,0,0,.15);color:var(--ink);">⌨</div>
+            <div class="step-num" style="display:inline-flex;align-items:center;justify-content:center;background:var(--ink);color:var(--paper);">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            </div>
             <div class="step-title">The shortcut</div>
             <div class="keycap-row">
               <div class="keycap-cell">
@@ -447,7 +459,7 @@ footer {
       <div class="features">
         <h2 class="features-heading">Built to stay out of your way.</h2>
         <div class="bento">
-          <div class="bento-card dark wide">
+          <div class="bento-card wide">
             <div class="bento-icon">👁</div>
             <div class="bento-title">Context-aware, not generic</div>
             <p class="bento-body">doubleii reads the surrounding article so the explanation is specific to what you're actually reading — not a Wikipedia definition lifted out of context.</p>
@@ -481,10 +493,12 @@ footer {
             <div class="bento-title">Editable system prompt</div>
             <p class="bento-body">Want a different tone? Edit the prompt in Settings. Leave it blank to use the built-in "plain language" default.</p>
           </div>
-          <div class="bento-card">
+          <div class="bento-card full">
             <div class="bento-icon">⚡</div>
-            <div class="bento-title">No build step</div>
-            <p class="bento-body">Plain JS, no bundler. Load unpacked in Chrome. Edit a file, hit reload on the extensions page. That's it.</p>
+            <div class="bento-text">
+              <div class="bento-title">No build step</div>
+              <p class="bento-body">Plain JS, no bundler, no dependencies. Load unpacked in Chrome, edit a file, hit reload on the extensions page. Contribute without a setup guide.</p>
+            </div>
           </div>
         </div>
       </div>
