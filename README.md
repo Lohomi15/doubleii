@@ -48,14 +48,18 @@ French), and edit the **system prompt** (leave blank to use the default).
 
 ## Install (Chrome / Brave / Edge / Arc)
 
-doubleii loads as an unpacked extension — no store listing yet.
+doubleii is distributed directly from this repo — no Chrome Web Store needed.
+Loading an unpacked extension takes about 30 seconds.
 
 ```
-1. Clone this repo (or download the ZIP)
-2. Open chrome://extensions, enable Developer mode (top right)
-3. Click Load unpacked → select the project folder
-4. Click the doubleii icon → Settings → paste your API key
-5. Open any article, highlight a line, press ⌥B (Mac) or Alt+B (Windows)
+1. Click the green "Code" button above → Download ZIP → unzip it
+   (or: git clone https://github.com/Lohomi15/doubleii)
+2. Open chrome://extensions in your browser
+3. Toggle on Developer mode (top-right switch)
+4. Click Load unpacked → select the unzipped doubleii folder
+5. Pin doubleii from the extensions puzzle-piece menu
+6. Click the doubleii icon → Settings → add your API key
+7. Open any article, highlight a line, press ⌥B (Mac) or Alt+B (Windows)
 ```
 
 **API key sources:**
