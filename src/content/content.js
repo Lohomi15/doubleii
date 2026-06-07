@@ -18,6 +18,13 @@
   const MAX_CONTEXT_CHARS = 6000;
   const MIN_SELECTION_CHARS = 2;
 
+  // Returns true when the extension has been reloaded/updated and this content
+  // script's runtime connection is severed. Any chrome.runtime call will throw
+  // "Extension context invalidated" in that state.
+  function runtimeDead() {
+    try { return !chrome.runtime?.id; } catch { return true; }
+  }
+
   const THINKING_MESSAGES = [
     "Reading the context…",
     "Thinking it through…",
@@ -181,6 +188,11 @@
 
   function startExplain(info) {
     if (!info) return;
+    if (runtimeDead()) {
+      showBubble(info.rect);
+      setBubbleError({ error: "The extension was reloaded — refresh this page to continue.", code: "GENERIC" });
+      return;
+    }
     lastInfo = info;
     hideIcon();
     showBubble(info.rect);
@@ -318,8 +330,11 @@
       </div>`;
     body.querySelector(".dii-err-msg").textContent = message;
     body.querySelector(".dii-action").addEventListener("click", () => {
-      if (settingsCodes) chrome.runtime.sendMessage({ type: "doubleii:open-options" });
-      else startExplain(lastInfo);
+      if (settingsCodes) {
+        try { chrome.runtime.sendMessage({ type: "doubleii:open-options" }); } catch {}
+      } else {
+        startExplain(lastInfo);
+      }
     });
   }
 
