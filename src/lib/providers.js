@@ -84,20 +84,14 @@ function providerError(code, message) {
 }
 
 async function toError(label, res) {
-  let detail = "";
-  try {
-    detail = (await res.text()).slice(0, 200);
-  } catch {
-    /* ignore */
-  }
+  // Log the raw body internally only — never expose it to page context or
+  // bubble text (it may contain fragments of the API key in auth-failure responses).
+  try { console.error(`[doubleii] ${label} ${res.status}:`, (await res.clone().text()).slice(0, 200)); } catch {}
   if (res.status === 401 || res.status === 403) {
     return providerError("AUTH", `Your ${label} API key was rejected. Check it in Settings.`);
   }
   if (res.status === 429) {
-    return providerError(
-      "RATE",
-      `${label} hit a rate limit or you're out of credits — check your billing with ${label}.`
-    );
+    return providerError("RATE", `${label} rate limit or out of credits — check your billing.`);
   }
-  return providerError("GENERIC", `Something went wrong with ${label} (${res.status}). ${detail}`.trim());
+  return providerError("GENERIC", `Something went wrong with ${label} (HTTP ${res.status}).`);
 }

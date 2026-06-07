@@ -4,10 +4,18 @@ async function render() {
   const s = await getSettings();
   const hasKey = !!(await activeKey(s));
   const state = document.getElementById("state");
+  state.textContent = "";
+
   if (hasKey) {
-    state.innerHTML = `Ready · provider: <b>${s.provider}</b>`;
+    state.append("Ready · provider: ");
+    const b = document.createElement("b");
+    b.textContent = s.provider;
+    state.append(b);
   } else {
-    state.innerHTML = `⚠️ No <b>${s.provider}</b> key set — open Settings to add one.`;
+    state.append("⚠️ No ");
+    const b = document.createElement("b");
+    b.textContent = s.provider;
+    state.append(b, " key set — open Settings to add one.");
   }
 }
 

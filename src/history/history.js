@@ -63,9 +63,12 @@ async function render() {
   for (const entry of history) list.append(card(entry));
 }
 
-document.getElementById("clear").addEventListener("click", async () => {
+document.getElementById("clear").addEventListener("click", async (e) => {
+  const btn = e.currentTarget;
+  btn.disabled = true;
   await clearHistory();
-  render();
+  await render();
+  btn.disabled = false;
 });
 
 render();

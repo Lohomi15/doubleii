@@ -60,9 +60,9 @@ function buildModelDropdown(provider, savedValue) {
       btn.dataset.value = m.value;
       btn.setAttribute("role", "option");
       btn.setAttribute("aria-selected", m.value === active ? "true" : "false");
-      btn.innerHTML =
-        `<span class="model-opt-name">${m.name}</span>` +
-        `<span class="model-opt-hint">${m.hint}</span>`;
+      const nm = document.createElement("span"); nm.className = "model-opt-name"; nm.textContent = m.name;
+      const ht = document.createElement("span"); ht.className = "model-opt-hint"; ht.textContent = m.hint;
+      btn.append(nm, ht);
       btn.addEventListener("click", () => pickModel(m));
       return btn;
     })
@@ -278,18 +278,22 @@ function renderBreakdown(entries, container) {
 
     const section = document.createElement("div");
     section.className = "usage-week";
-    section.innerHTML = `
-      <div class="usage-week-header">
-        <span class="usage-week-label">Week of ${weekLabel(monTs)}</span>
-        <span class="usage-week-total">${fmtTokens(weekTotal.tokens)} · ${fmtCost(weekTotal.cost)}</span>
-      </div>`;
+
+    const hdr = document.createElement("div"); hdr.className = "usage-week-header";
+    const lbl = document.createElement("span"); lbl.className = "usage-week-label";
+    lbl.textContent = `Week of ${weekLabel(monTs)}`;
+    const tot = document.createElement("span"); tot.className = "usage-week-total";
+    tot.textContent = `${fmtTokens(weekTotal.tokens)} · ${fmtCost(weekTotal.cost)}`;
+    hdr.append(lbl, tot);
+    section.appendChild(hdr);
 
     for (const [model, row] of [...byModel.entries()].sort((a, b) => b[1].cost - a[1].cost)) {
-      const r = document.createElement("div");
-      r.className = "usage-row";
-      r.innerHTML =
-        `<span class="usage-row-model">${shortModelName(model)}</span>` +
-        `<span class="usage-row-stats">${fmtTokens(row.tokens)} · ${fmtCost(row.cost)}</span>`;
+      const r = document.createElement("div"); r.className = "usage-row";
+      const nm = document.createElement("span"); nm.className = "usage-row-model";
+      nm.textContent = shortModelName(model);
+      const st = document.createElement("span"); st.className = "usage-row-stats";
+      st.textContent = `${fmtTokens(row.tokens)} · ${fmtCost(row.cost)}`;
+      r.append(nm, st);
       section.appendChild(r);
     }
 

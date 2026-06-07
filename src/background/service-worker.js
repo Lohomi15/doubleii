@@ -63,7 +63,7 @@ async function handleExplain(payload) {
 
   const { explanation, inputTokens, outputTokens } = await explain({
     provider: settings.provider,
-    model: settings.model,
+    model: resolvedModel,
     keys: { anthropicKey: settings.anthropicKey, openaiKey: settings.openaiKey },
     system,
     selectedText: payload.selectedText,

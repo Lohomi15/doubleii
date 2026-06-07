@@ -58,12 +58,15 @@ export async function getHistory() {
   return d[HISTORY_KEY] || [];
 }
 
-export async function addHistory(entry) {
-  const history = await getHistory();
-  history.unshift(entry);
-  await chrome.storage.local.set({
-    [HISTORY_KEY]: history.slice(0, HISTORY_LIMIT),
-  });
+// Serialise writes so concurrent explains don't drop entries (TOCTOU).
+let _writeChain = Promise.resolve();
+export function addHistory(entry) {
+  _writeChain = _writeChain.then(async () => {
+    const history = await getHistory();
+    history.unshift(entry);
+    await chrome.storage.local.set({ [HISTORY_KEY]: history.slice(0, HISTORY_LIMIT) });
+  }).catch(() => {});
+  return _writeChain;
 }
 
 export async function clearHistory() {

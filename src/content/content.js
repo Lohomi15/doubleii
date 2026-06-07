@@ -40,6 +40,7 @@
   let lastInfo = null; // last selection we explained (for retry)
   let thinkTimer = null;
   let isDragging = false;
+  let inFlight = false; // prevent concurrent explain calls
   let dragOffsetX = 0;
   let dragOffsetY = 0;
 
@@ -83,7 +84,7 @@
   }
 
   function insideOurUI(node) {
-    return !!(node && node.closest && node.closest(`#${HOST_ID}`));
+    return !!(host && node && node.closest && node.closest(`#${HOST_ID}`) === host);
   }
 
   // ---- context extraction -------------------------------------------------
@@ -187,12 +188,13 @@
   // ---- bubble -------------------------------------------------------------
 
   function startExplain(info) {
-    if (!info) return;
+    if (!info || inFlight) return;
     if (runtimeDead()) {
       showBubble(info.rect);
       setBubbleError({ error: "The extension was reloaded — refresh this page to continue.", code: "GENERIC" });
       return;
     }
+    inFlight = true;
     lastInfo = info;
     hideIcon();
     showBubble(info.rect);
@@ -211,11 +213,13 @@
     chrome.runtime
       .sendMessage({ type: "doubleii:explain", payload })
       .then((res) => {
+        inFlight = false;
         if (!bubble) return;
         if (res?.error) setBubbleError(res);
         else setBubbleText(res?.explanation || "No explanation returned.", res);
       })
       .catch((e) => {
+        inFlight = false;
         if (bubble) setBubbleError({ error: String(e?.message || e), code: "GENERIC" });
       });
   }
@@ -297,6 +301,7 @@
     textEl.textContent = THINKING_MESSAGES[0];
     stopThinking();
     thinkTimer = setInterval(() => {
+      if (!bodyEl()) { stopThinking(); return; }
       i = Math.min(i + 1, THINKING_MESSAGES.length - 1);
       textEl.textContent = THINKING_MESSAGES[i];
     }, 2200);
@@ -363,6 +368,7 @@
   }
 
   function hideBubble() {
+    inFlight = false;
     stopDrag();
     stopThinking();
     if (bubble) {
@@ -370,6 +376,9 @@
       bubble = null;
     }
   }
+
+  // Clean up on page navigation / unload so drag listeners don't linger.
+  window.addEventListener("pagehide", hideBubble);
 
   // ---- assets -------------------------------------------------------------
 

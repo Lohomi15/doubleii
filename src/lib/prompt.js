@@ -36,18 +36,24 @@ export function composeSystemPrompt(customPrompt, language) {
   return `${base}\n\nAlways write the explanation in ${lang}.`;
 }
 
+// Prevent a malicious page from breaking out of the triple-quote delimiters
+// and injecting extra instructions (prompt injection).
+function safeEmbed(s) {
+  return String(s).replace(/"""/g, '"​""');
+}
+
 export function buildUserPrompt({ selectedText, context, title }) {
   const parts = [];
-  if (title) parts.push(`ARTICLE TITLE: ${title}`);
+  if (title) parts.push(`ARTICLE TITLE: ${safeEmbed(title)}`);
   if (context) {
     parts.push("ARTICLE CONTEXT:");
     parts.push('"""');
-    parts.push(context);
+    parts.push(safeEmbed(context));
     parts.push('"""');
   }
   parts.push("HIGHLIGHTED PASSAGE (explain this):");
   parts.push('"""');
-  parts.push(selectedText);
+  parts.push(safeEmbed(selectedText));
   parts.push('"""');
   return parts.join("\n");
 }
