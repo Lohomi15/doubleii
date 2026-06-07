@@ -322,6 +322,51 @@ footer {
 .footer-links a:hover { color: var(--ink); }
 .footer-note { font: 400 12px/1 var(--mono); color: var(--smoke); }
 
+/* ---- mobile ----------------------------------------------------------- */
+@media (max-width: 640px) {
+  /* nav: hide text links, keep logo + CTA */
+  .nav-links a:not(.nav-cta) { display: none; }
+
+  /* hero */
+  .hero { padding: 56px 20px 40px; }
+  .hero-sub { font-size: 16px; }
+  h1 { font-size: 36px; }
+
+  /* how it works */
+  .hiw { padding: 52px 20px 44px; }
+  .hiw-heading { font-size: 30px !important; }
+
+  /* keycap cells: always stack on phone */
+  .keycap-row { grid-template-columns: 1fr; }
+
+  /* bento features */
+  .features { padding: 52px 20px 56px; }
+  .features-heading { font-size: 28px; }
+  /* full-width card: stack on mobile */
+  .bento-card.full { flex-direction: column; align-items: flex-start; gap: 10px; }
+
+  /* privacy */
+  .privacy-section { padding: 64px 20px; }
+  .privacy-heading { font-size: 28px; }
+
+  /* install */
+  .install { padding: 52px 20px; }
+  .install-heading { font-size: 28px; }
+  .install-step { padding: 14px 16px; }
+
+  /* footer: stack vertically */
+  .footer-inner { flex-direction: column; align-items: flex-start; gap: 10px; }
+
+  /* demo area */
+  .demo-area { padding: 0 16px; }
+}
+
+@media (max-width: 380px) {
+  h1 { font-size: 30px; }
+  .nav-cta { padding: 8px 12px; font-size: 12px; }
+  .keycap.wide { min-width: 64px; font-size: 12px; }
+}
+
     </style>
   </head>
   <body>
@@ -401,7 +446,7 @@ footer {
       <div class="hiw">
         <div class="hiw-header">
           <div class="mono-label">How it works</div>
-          <h2 class="hiw-heading" style="font:700 44px/1.18 var(--serif);letter-spacing:-.01em;color:var(--ink);margin-top:16px;">
+          <h2 class="hiw-heading" style="margin-top:16px;">
             Three steps.<br>No copy-paste.
           </h2>
         </div>
