@@ -32,6 +32,9 @@
   let currentSelection = null; // selection backing the icon
   let lastInfo = null; // last selection we explained (for retry)
   let thinkTimer = null;
+  let isDragging = false;
+  let dragOffsetX = 0;
+  let dragOffsetY = 0;
 
   // ---- selection handling -------------------------------------------------
 
@@ -221,8 +224,44 @@
       <div class="dii-body"></div>`;
     bubble.querySelector(".dii-close").addEventListener("click", hideBubble);
     bubble.querySelector(".dii-retry").addEventListener("click", () => startExplain(lastInfo));
+    bubble.querySelector(".dii-head").addEventListener("mousedown", startDrag);
     shadow.appendChild(bubble);
     placeAt(bubble, rect);
+  }
+
+  // ---- drag ---------------------------------------------------------------
+
+  function startDrag(e) {
+    if (e.target.closest(".dii-btn")) return; // don't drag when clicking buttons
+    e.preventDefault();
+    isDragging = true;
+    const rect = bubble.getBoundingClientRect();
+    dragOffsetX = e.clientX - rect.left;
+    dragOffsetY = e.clientY - rect.top;
+    bubble.style.cursor = "grabbing";
+    document.addEventListener("mousemove", onDragMove, true);
+    document.addEventListener("mouseup", stopDrag, true);
+  }
+
+  function onDragMove(e) {
+    if (!isDragging || !bubble) return;
+    const margin = 8;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const w = bubble.offsetWidth;
+    const h = bubble.offsetHeight;
+    const left = Math.min(Math.max(margin, e.clientX - dragOffsetX), vw - w - margin);
+    const top  = Math.min(Math.max(margin, e.clientY - dragOffsetY), vh - h - margin);
+    bubble.style.left = `${left}px`;
+    bubble.style.top  = `${top}px`;
+  }
+
+  function stopDrag() {
+    if (!isDragging) return;
+    isDragging = false;
+    document.removeEventListener("mousemove", onDragMove, true);
+    document.removeEventListener("mouseup", stopDrag, true);
+    if (bubble) bubble.style.cursor = "";
   }
 
   function bodyEl() {
@@ -285,6 +324,7 @@
   }
 
   function hideBubble() {
+    stopDrag();
     stopThinking();
     if (bubble) {
       bubble.remove();
@@ -335,7 +375,9 @@
     .dii-head {
       display: flex; align-items: center; justify-content: space-between;
       padding: 11px 12px 9px 15px; border-bottom: 1px solid rgba(255,255,255,.07);
+      cursor: grab; user-select: none;
     }
+    .dii-head:active { cursor: grabbing; }
     .dii-brand {
       font: 600 16px/1.3 'dii-Serif', Georgia, serif; letter-spacing: 0.01em; color: #ffffff;
     }
