@@ -2,7 +2,7 @@
 // user's browser. Holds the API key, talks to the provider, saves history.
 // Content scripts never see the key; they only send selection + context here.
 
-import { getSettings, addHistory } from "../lib/storage.js";
+import { getSettings, addHistory, computeCost, DEFAULT_MODELS } from "../lib/storage.js";
 import { explain } from "../lib/providers.js";
 import { composeSystemPrompt } from "../lib/prompt.js";
 
@@ -59,8 +59,9 @@ async function handleExplain(payload) {
   }
 
   const system = composeSystemPrompt(settings.customPrompt, settings.language);
+  const resolvedModel = settings.model || DEFAULT_MODELS[settings.provider];
 
-  const explanation = await explain({
+  const { explanation, inputTokens, outputTokens } = await explain({
     provider: settings.provider,
     model: settings.model,
     keys: { anthropicKey: settings.anthropicKey, openaiKey: settings.openaiKey },
@@ -70,6 +71,8 @@ async function handleExplain(payload) {
     title: payload.title,
   });
 
+  const cost = computeCost(resolvedModel, inputTokens, outputTokens);
+
   await addHistory({
     id: payload.id,
     selectedText: payload.selectedText,
@@ -78,10 +81,13 @@ async function handleExplain(payload) {
     fragmentUrl: payload.fragmentUrl,
     title: payload.title,
     provider: settings.provider,
-    model: settings.model || "",
+    model: resolvedModel,
     language: settings.language,
     ts: payload.ts,
+    inputTokens,
+    outputTokens,
+    cost,
   });
 
-  return { explanation };
+  return { explanation, inputTokens, outputTokens, cost };
 }

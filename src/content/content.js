@@ -213,7 +213,7 @@
       .then((res) => {
         if (!bubble) return;
         if (res?.error) setBubbleError(res);
-        else setBubbleText(res?.explanation || "No explanation returned.");
+        else setBubbleText(res?.explanation || "No explanation returned.", res);
       })
       .catch((e) => {
         if (bubble) setBubbleError({ error: String(e?.message || e), code: "GENERIC" });
@@ -302,12 +302,34 @@
     }, 2200);
   }
 
-  function setBubbleText(text) {
+  function setBubbleText(text, meta) {
     stopThinking();
     const body = bodyEl();
     if (!body) return;
     body.className = "dii-body";
-    body.textContent = text;
+
+    const expl = document.createElement("div");
+    expl.className = "dii-expl";
+    expl.textContent = text;
+    body.appendChild(expl);
+
+    const totalTokens = (meta?.inputTokens || 0) + (meta?.outputTokens || 0);
+    if (totalTokens > 0) {
+      const footer = document.createElement("div");
+      footer.className = "dii-cost";
+      const tStr = totalTokens >= 1000
+        ? `${(totalTokens / 1000).toFixed(1)}k`
+        : String(totalTokens);
+      const cost = meta?.cost || 0;
+      const cStr = cost < 0.0001 ? "<$0.0001" : `$${cost.toFixed(4)}`;
+      footer.innerHTML =
+        `<span class="dii-cost-num">${tStr} tokens · ${cStr}</span>` +
+        `<button class="dii-cost-link">View usage ↗</button>`;
+      footer.querySelector(".dii-cost-link").addEventListener("click", () => {
+        try { chrome.runtime.sendMessage({ type: "doubleii:open-options" }); } catch {}
+      });
+      body.appendChild(footer);
+    }
   }
 
   function setBubbleError({ error, code }) {
@@ -403,7 +425,22 @@
     }
     .dii-btn:hover { color: #ffffff; background: rgba(255,255,255,.08); }
 
-    .dii-body { padding: 14px 15px 16px; white-space: pre-wrap; }
+    .dii-body { padding: 14px 15px 0; white-space: pre-wrap; }
+    .dii-expl { padding-bottom: 14px; }
+    .dii-cost {
+      display: flex; align-items: center; justify-content: space-between;
+      border-top: 1px solid rgba(255,255,255,.07); padding: 8px 0 12px; gap: 8px;
+    }
+    .dii-cost-num {
+      font: 400 10.5px/1 'dii-Sans', monospace; color: #6d6d6d; letter-spacing: 0.02em;
+    }
+    .dii-cost-link {
+      background: transparent; border: 0; color: #9a9a9a; cursor: pointer;
+      font: 400 10.5px/1 'dii-Sans', sans-serif; padding: 0;
+      text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px;
+      white-space: nowrap;
+    }
+    .dii-cost-link:hover { color: #f5f4f2; }
 
     /* thinking shimmer */
     .dii-think { padding: 6px 0 8px; }

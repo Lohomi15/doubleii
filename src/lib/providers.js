@@ -40,11 +40,16 @@ async function callAnthropic({ model, key, system, user }) {
   });
   if (!res.ok) throw await toError("Anthropic", res);
   const data = await res.json();
-  return (data.content || [])
+  const explanation = (data.content || [])
     .filter((b) => b.type === "text")
     .map((b) => b.text)
     .join("")
     .trim();
+  return {
+    explanation,
+    inputTokens: data.usage?.input_tokens || 0,
+    outputTokens: data.usage?.output_tokens || 0,
+  };
 }
 
 async function callOpenAI({ model, key, system, user }) {
@@ -65,7 +70,11 @@ async function callOpenAI({ model, key, system, user }) {
   });
   if (!res.ok) throw await toError("OpenAI", res);
   const data = await res.json();
-  return (data.choices?.[0]?.message?.content || "").trim();
+  return {
+    explanation: (data.choices?.[0]?.message?.content || "").trim(),
+    inputTokens: data.usage?.prompt_tokens || 0,
+    outputTokens: data.usage?.completion_tokens || 0,
+  };
 }
 
 // Build an Error carrying a machine-readable `code` so the bubble can show the

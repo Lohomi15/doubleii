@@ -1,4 +1,4 @@
-import { getSettings, saveSettings } from "../lib/storage.js";
+import { getSettings, saveSettings, getHistory } from "../lib/storage.js";
 import { LANGUAGES, DEFAULT_SYSTEM_PROMPT } from "../lib/prompt.js";
 
 const $ = (sel) => document.querySelector(sel);
@@ -178,3 +178,121 @@ $("#save").addEventListener("click", async () => {
 });
 
 load();
+loadUsage();
+
+// ---- usage stats --------------------------------------------------------
+
+function mondayOf(ts) {
+  const d = new Date(ts);
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
+
+function weekLabel(monTs) {
+  const mon = new Date(monTs);
+  const sun = new Date(monTs + 6 * 86400000);
+  const mo = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  if (mon.getMonth() === sun.getMonth()) {
+    return `${mo[mon.getMonth()]} ${mon.getDate()}–${sun.getDate()}`;
+  }
+  return `${mo[mon.getMonth()]} ${mon.getDate()} – ${mo[sun.getMonth()]} ${sun.getDate()}`;
+}
+
+function fmtTokens(n) {
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}k tokens`;
+  return `${n} tokens`;
+}
+
+function fmtCost(c) {
+  if (c === 0) return "$0";
+  if (c < 0.0001) return "<$0.0001";
+  if (c < 0.01) return `$${c.toFixed(4)}`;
+  return `$${c.toFixed(3)}`;
+}
+
+function shortModelName(model) {
+  const MAP = {
+    "claude-haiku-4-5-20251001": "Haiku 4.5",
+    "claude-sonnet-4-6":         "Sonnet 4.6",
+    "claude-opus-4-8":           "Opus 4.8",
+    "gpt-4o-mini":               "GPT-4o mini",
+    "gpt-4o":                    "GPT-4o",
+  };
+  return MAP[model] || model;
+}
+
+async function loadUsage() {
+  const history = await getHistory();
+  const card = document.getElementById("usageCard");
+  const chip = document.getElementById("usageChip");
+  const chipText = document.getElementById("usageChipText");
+  const breakdown = document.getElementById("usageBreakdown");
+
+  // Only entries with token data
+  const tracked = history.filter((e) => e.inputTokens || e.outputTokens || e.cost);
+  if (!tracked.length) return; // hide card if no data yet
+  card.style.display = "";
+
+  // Last-7-days summary
+  const cutoff = Date.now() - 7 * 86400000;
+  const recent = tracked.filter((e) => e.ts >= cutoff);
+  const recentTokens = recent.reduce((s, e) => s + (e.inputTokens || 0) + (e.outputTokens || 0), 0);
+  const recentCost   = recent.reduce((s, e) => s + (e.cost || 0), 0);
+  chipText.textContent = recent.length
+    ? `Last 7 days · ${fmtTokens(recentTokens)} · ${fmtCost(recentCost)}`
+    : "Last 7 days · no usage yet";
+
+  // Chip toggle
+  chip.addEventListener("click", () => {
+    const open = chip.classList.toggle("open");
+    breakdown.classList.toggle("open", open);
+    if (open && !breakdown.hasChildNodes()) renderBreakdown(tracked, breakdown);
+  });
+}
+
+function renderBreakdown(entries, container) {
+  // Group by week (Monday key)
+  const weeks = new Map();
+  for (const e of entries) {
+    const wk = mondayOf(e.ts);
+    if (!weeks.has(wk)) weeks.set(wk, new Map());
+    const byModel = weeks.get(wk);
+    const model = e.model || "unknown";
+    if (!byModel.has(model)) byModel.set(model, { tokens: 0, cost: 0, count: 0 });
+    const row = byModel.get(model);
+    row.tokens += (e.inputTokens || 0) + (e.outputTokens || 0);
+    row.cost   += e.cost || 0;
+    row.count  += 1;
+  }
+
+  // Render newest week first
+  const sorted = [...weeks.entries()].sort((a, b) => b[0] - a[0]);
+
+  for (const [monTs, byModel] of sorted) {
+    const weekTotal = [...byModel.values()].reduce(
+      (s, r) => ({ tokens: s.tokens + r.tokens, cost: s.cost + r.cost }), { tokens: 0, cost: 0 }
+    );
+
+    const section = document.createElement("div");
+    section.className = "usage-week";
+    section.innerHTML = `
+      <div class="usage-week-header">
+        <span class="usage-week-label">Week of ${weekLabel(monTs)}</span>
+        <span class="usage-week-total">${fmtTokens(weekTotal.tokens)} · ${fmtCost(weekTotal.cost)}</span>
+      </div>`;
+
+    for (const [model, row] of [...byModel.entries()].sort((a, b) => b[1].cost - a[1].cost)) {
+      const r = document.createElement("div");
+      r.className = "usage-row";
+      r.innerHTML =
+        `<span class="usage-row-model">${shortModelName(model)}</span>` +
+        `<span class="usage-row-stats">${fmtTokens(row.tokens)} · ${fmtCost(row.cost)}</span>`;
+      section.appendChild(r);
+    }
+
+    container.appendChild(section);
+  }
+}
