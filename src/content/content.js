@@ -200,15 +200,22 @@
     showBubble(info.rect);
     setBubbleThinking();
 
-    const payload = {
-      id: `${info.rect.top | 0}-${performance.now() | 0}-${(Math.random() * 1e6) | 0}`,
-      selectedText: info.text,
-      context: extractContext(info.range, info.text),
-      title: document.title || "",
-      url: location.href,
-      fragmentUrl: buildFragmentUrl(info.text),
-      ts: Date.now(),
-    };
+    let payload;
+    try {
+      payload = {
+        id: `${info.rect.top | 0}-${performance.now() | 0}-${(Math.random() * 1e6) | 0}`,
+        selectedText: info.text,
+        context: extractContext(info.range, info.text),
+        title: document.title || "",
+        url: location.href,
+        fragmentUrl: buildFragmentUrl(info.text),
+        ts: Date.now(),
+      };
+    } catch (e) {
+      inFlight = false;
+      if (bubble) setBubbleError({ error: "Couldn't read the page context. Try again.", code: "GENERIC" });
+      return;
+    }
 
     chrome.runtime
       .sendMessage({ type: "doubleii:explain", payload })
@@ -309,15 +316,18 @@
 
   function setBubbleText(text, meta) {
     stopThinking();
-    const body = bodyEl();
-    if (!body) return;
-    body.className = "dii-body";
-    body.innerHTML = ""; // clear the thinking shimmer
+    if (!bubble) return;
+
+    // Build content in a fresh element, then swap out the old body entirely.
+    // Replacing (not clearing) guarantees the shimmer element is gone from the DOM —
+    // clearing innerHTML can leave the GPU-composited animation visually alive.
+    const newBody = document.createElement("div");
+    newBody.className = "dii-body";
 
     const expl = document.createElement("div");
     expl.className = "dii-expl";
     expl.textContent = text;
-    body.appendChild(expl);
+    newBody.appendChild(expl);
 
     const totalTokens = (meta?.inputTokens || 0) + (meta?.outputTokens || 0);
     if (totalTokens > 0) {
@@ -335,14 +345,16 @@
       footer.querySelector(".dii-cost-link").addEventListener("click", () => {
         try { chrome.runtime.sendMessage({ type: "doubleii:open-options" }); } catch {}
       });
-      body.appendChild(footer);
+      newBody.appendChild(footer);
     }
+
+    const oldBody = bubble.querySelector(".dii-body");
+    if (oldBody) oldBody.replaceWith(newBody); else bubble.appendChild(newBody);
   }
 
   function setBubbleError({ error, code }) {
     stopThinking();
-    const body = bodyEl();
-    if (!body) return;
+    if (!bubble) return;
     const settingsCodes = code === "NO_KEY" || code === "AUTH";
     const message =
       code === "NO_KEY"
@@ -350,21 +362,24 @@
         : error || "Something went wrong. Please retry.";
     const actionLabel = settingsCodes ? "Open Settings" : "Retry";
 
-    body.className = "dii-body";
-    body.innerHTML = `
-      <div class="dii-err">
-        <div class="dii-err-label">Couldn't explain</div>
-        <div class="dii-err-msg"></div>
-        <button class="dii-action">${actionLabel}</button>
-      </div>`;
-    body.querySelector(".dii-err-msg").textContent = message;
-    body.querySelector(".dii-action").addEventListener("click", () => {
+    const newBody = document.createElement("div");
+    newBody.className = "dii-body";
+    const errLabel = document.createElement("div"); errLabel.className = "dii-err-label"; errLabel.textContent = "Couldn't explain";
+    const errMsg = document.createElement("div"); errMsg.className = "dii-err-msg"; errMsg.textContent = message;
+    const btn = document.createElement("button"); btn.className = "dii-action"; btn.textContent = actionLabel;
+    btn.addEventListener("click", () => {
       if (settingsCodes) {
         try { chrome.runtime.sendMessage({ type: "doubleii:open-options" }); } catch {}
       } else {
         startExplain(lastInfo);
       }
     });
+    const errWrap = document.createElement("div"); errWrap.className = "dii-err";
+    errWrap.append(errLabel, errMsg, btn);
+    newBody.appendChild(errWrap);
+
+    const oldBody = bubble.querySelector(".dii-body");
+    if (oldBody) oldBody.replaceWith(newBody); else bubble.appendChild(newBody);
   }
 
   function hideBubble() {
