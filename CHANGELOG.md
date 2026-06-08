@@ -7,13 +7,34 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### In Development
+- Safari Web Extension for macOS 14+ (Sonoma / Sequoia / Tahoe)
+  - Full MV3 service worker support
+  - All features parity: explain bubble, history, settings, keyboard shortcut
+  - Build via Xcode using the included safari/ setup files
+
 ### Planned
 - Streaming (token-by-token) explanations
 - Configurable trigger key
 - Ollama / local model support for fully offline use
 - Readability.js for cleaner article extraction
 - Adjustable explanation depth
-- Safari support via Xcode wrapper
+
+---
+
+## [0.1.1] — In Development
+
+### Added
+- Safari Web Extension support (macOS 14+, Safari 17+) — see safari/README.md
+- Token and cost tracking per explanation (shown in bubble and Settings)
+- Usage breakdown in Settings: weekly history by model with costs
+- Custom model dropdown with per-model hints (Haiku / Sonnet / Opus / GPT-4o)
+
+### Fixed
+- Shimmer loader persisting over explanation (innerHTML not cleared before append)
+- History button silently broken (missing tabs permission in manifest)
+- Extension context invalidated crash on stale service worker
+- Concurrent explain race condition corrupting lastInfo state
 
 ---
 
@@ -63,3 +84,12 @@ First public release.
 - GitHub Pages landing page at `lohomi15.github.io/doubleii`
 - Issue templates (bug report + feature request), PR template, CONTRIBUTING.md
 - MIT licence
+
+### Security
+- XSS prevention: all storage-sourced values rendered with textContent/createElement
+- Prompt injection mitigation: safeEmbed() breaks """ delimiters in user content
+- API error bodies logged internally only, never exposed to page context
+- Content Security Policy: script-src 'self'; object-src 'self' for extension pages
+- inFlight flag prevents concurrent explain race conditions
+- Promise-chain serialization for addHistory prevents TOCTOU history drops
+- runtimeDead() guard prevents "Extension context invalidated" crashes on stale runtime

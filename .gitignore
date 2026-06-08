@@ -14,6 +14,10 @@ dist/
 *.zip
 *.crx
 
+# Safari — generated Xcode project (regenerate with safari/build.sh)
+safari/DoubleiiSafari/
+safari/doubleii/
+
 # OS / editor
 .DS_Store
 Thumbs.db

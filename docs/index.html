@@ -322,6 +322,100 @@ h1 {
 }
 .bento-card:hover .bento-tag { background: rgba(255,255,255,.15); color: #f5f4f2; }
 
+/* ---- platforms section ------------------------------------------------ */
+.platforms-section { background: var(--bg); }
+.platforms { padding: 80px 24px 72px; max-width: 1100px; margin: 0 auto; }
+.platforms-heading {
+  font: 700 44px/1.18 var(--serif); letter-spacing: -0.01em; color: var(--ink);
+  margin-bottom: 40px;
+}
+@media (max-width: 600px) { .platforms-heading { font-size: 30px; } }
+.platform-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+}
+@media (max-width: 620px) { .platform-grid { grid-template-columns: 1fr; } }
+.platform-col {
+  background: var(--paper); border: 1px solid var(--line); border-radius: 16px;
+  padding: 26px 28px; display: flex; flex-direction: column; gap: 0;
+}
+.platform-col-label {
+  font: 400 10.5px/1 var(--mono); text-transform: uppercase; letter-spacing: 0.13em;
+  color: var(--smoke); margin-bottom: 20px;
+}
+.platform-col-label.available { color: var(--ink); }
+.platform-item {
+  display: flex; align-items: flex-start; gap: 12px; padding: 13px 0;
+  border-bottom: 1px solid var(--line);
+}
+.platform-item:last-child { border-bottom: 0; padding-bottom: 0; }
+.platform-item:first-of-type { padding-top: 0; }
+.platform-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--ink);
+  flex: none; margin-top: 4px;
+}
+.platform-dot.soon {
+  background: transparent; border: 1.5px dashed var(--smoke);
+}
+.platform-item-name {
+  font: 600 14.5px/1.4 var(--sans); color: var(--ink);
+}
+.platform-item-note {
+  font: 400 12.5px/1.4 var(--mono); color: var(--ash);
+  margin-top: 2px;
+}
+
+/* ---- changelog section ------------------------------------------------ */
+.changelog-section { background: var(--bg2); }
+.changelog { padding: 80px 24px 80px; max-width: 1100px; margin: 0 auto; }
+.changelog-heading {
+  font: 700 44px/1.18 var(--serif); letter-spacing: -0.01em; color: var(--ink);
+  margin-bottom: 44px;
+}
+@media (max-width: 600px) { .changelog-heading { font-size: 30px; } }
+.changelog-list { display: flex; flex-direction: column; gap: 0; }
+.changelog-entry {
+  display: grid; grid-template-columns: 200px 1fr; gap: 32px;
+  padding: 28px 0; border-bottom: 1px solid var(--line); align-items: start;
+}
+.changelog-entry:last-child { border-bottom: 0; }
+@media (max-width: 680px) {
+  .changelog-entry { grid-template-columns: 1fr; gap: 12px; }
+}
+.changelog-meta {}
+.changelog-version {
+  font: 600 14px/1.3 var(--mono); color: var(--ink); margin-bottom: 4px;
+}
+.changelog-date {
+  font: 400 12px/1.3 var(--mono); color: var(--smoke);
+}
+.changelog-badge {
+  display: inline-block; margin-top: 8px;
+  font: 400 10px/1 var(--mono); text-transform: uppercase; letter-spacing: 0.1em;
+  padding: 4px 8px; border-radius: 6px; border: 1px solid var(--line);
+  color: var(--ash); background: var(--paper);
+}
+.changelog-badge.released {
+  background: var(--ink); color: var(--paper); border-color: var(--ink);
+}
+.changelog-items { display: flex; flex-direction: column; gap: 10px; }
+.changelog-item {
+  display: flex; gap: 11px; align-items: flex-start;
+}
+.changelog-item-dot {
+  width: 5px; height: 5px; border-radius: 50%; background: var(--ash);
+  flex: none; margin-top: 6px;
+}
+.changelog-item-text {
+  font-size: 14px; line-height: 1.6; color: var(--carbon);
+}
+.changelog-item-text strong { color: var(--ink); }
+.changelog-gh-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 28px; font: 400 13px/1 var(--sans); color: var(--ash);
+  border-bottom: 1px solid var(--line); padding-bottom: 2px;
+}
+.changelog-gh-link:hover { color: var(--ink); border-color: var(--ink); }
+
 /* ---- privacy section -------------------------------------------------- */
 .privacy-section {
   background: var(--ink); color: #f5f4f2;
@@ -416,6 +510,14 @@ footer {
   .privacy-section { padding: 64px 20px; }
   .privacy-heading { font-size: 28px; }
 
+  /* platforms */
+  .platforms { padding: 52px 20px; }
+  .platforms-heading { font-size: 28px; }
+
+  /* changelog */
+  .changelog { padding: 52px 20px; }
+  .changelog-heading { font-size: 28px; }
+
   /* install */
   .install { padding: 52px 20px; }
   .install-heading { font-size: 28px; }
@@ -448,6 +550,7 @@ footer {
         <div class="nav-links">
           <a href="#how-it-works">How it works</a>
           <a href="#privacy">Privacy</a>
+          <a href="#changelog">Changelog</a>
           <a href="https://github.com/Lohomi15/doubleii" target="_blank" rel="noreferrer" class="gh-star">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2 0-.4-.5-1.5.2-3.1 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17 6.1 18 6.4 18 6.4c.7 1.6.2 2.7.1 3 .8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.5.4.9 1.2.9 2.3v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3"/></svg>
             <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
@@ -474,7 +577,7 @@ footer {
         <div class="hero-actions">
           <a class="btn-primary" href="https://github.com/Lohomi15/doubleii/archive/refs/heads/main.zip" target="_blank" rel="noreferrer">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 2L12 16M6 10l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 20h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-            Get for Chrome / Brave
+            Get for Chrome / Brave / Edge
           </a>
           <a class="gh-badge" href="https://github.com/Lohomi15/doubleii" target="_blank" rel="noreferrer">
             <span class="gh-badge-left">
@@ -487,7 +590,7 @@ footer {
             </span>
           </a>
         </div>
-        <p class="hero-platform-note">Desktop Chrome · Brave · Edge · Arc — not available on mobile</p>
+        <p class="hero-platform-note">Chrome · Brave · Edge · Arc — Safari coming soon · Mobile planned</p>
       </div>
 
       <!-- inline demo mockup -->
@@ -658,11 +761,141 @@ footer {
       </div>
     </section>
 
+    <!-- platforms -->
+    <section id="platforms" class="platforms-section">
+      <div class="platforms">
+        <div class="mono-label">Where it runs</div>
+        <h2 class="platforms-heading">Supported browsers</h2>
+        <div class="platform-grid">
+          <div class="platform-col">
+            <div class="platform-col-label available">Available now</div>
+            <div class="platform-item">
+              <div class="platform-dot"></div>
+              <div>
+                <div class="platform-item-name">Chrome</div>
+                <div class="platform-item-note">Desktop · MV3</div>
+              </div>
+            </div>
+            <div class="platform-item">
+              <div class="platform-dot"></div>
+              <div>
+                <div class="platform-item-name">Brave</div>
+                <div class="platform-item-note">Desktop · MV3</div>
+              </div>
+            </div>
+            <div class="platform-item">
+              <div class="platform-dot"></div>
+              <div>
+                <div class="platform-item-name">Edge</div>
+                <div class="platform-item-note">Desktop · MV3</div>
+              </div>
+            </div>
+            <div class="platform-item">
+              <div class="platform-dot"></div>
+              <div>
+                <div class="platform-item-name">Arc</div>
+                <div class="platform-item-note">Desktop · Chromium-based</div>
+              </div>
+            </div>
+          </div>
+          <div class="platform-col">
+            <div class="platform-col-label">Coming soon</div>
+            <div class="platform-item">
+              <div class="platform-dot soon"></div>
+              <div>
+                <div class="platform-item-name">Safari</div>
+                <div class="platform-item-note">macOS 14+ · In development</div>
+              </div>
+            </div>
+            <div class="platform-item">
+              <div class="platform-dot soon"></div>
+              <div>
+                <div class="platform-item-name">Mobile browsers</div>
+                <div class="platform-item-note">iOS · Android · Planned</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- changelog -->
+    <section id="changelog" class="changelog-section">
+      <div class="changelog">
+        <div class="mono-label">Changelog</div>
+        <h2 class="changelog-heading" style="margin-top:16px;">What's new</h2>
+        <div class="changelog-list">
+          <div class="changelog-entry">
+            <div class="changelog-meta">
+              <div class="changelog-version">v0.1.0</div>
+              <div class="changelog-date">June 2026</div>
+              <span class="changelog-badge released">Released</span>
+            </div>
+            <div class="changelog-items">
+              <div class="changelog-item">
+                <div class="changelog-item-dot"></div>
+                <div class="changelog-item-text"><strong>Highlight → Explain bubble</strong> with Shadow DOM isolated UI — no style conflicts on any site</div>
+              </div>
+              <div class="changelog-item">
+                <div class="changelog-item-dot"></div>
+                <div class="changelog-item-text"><strong>Anthropic and OpenAI support</strong> — BYO key, zero servers, your key never leaves your device</div>
+              </div>
+              <div class="changelog-item">
+                <div class="changelog-item-dot"></div>
+                <div class="changelog-item-text"><strong>History, token &amp; cost tracking,</strong> and editable custom prompt in Settings</div>
+              </div>
+              <div class="changelog-item">
+                <div class="changelog-item-dot"></div>
+                <div class="changelog-item-text">Runs on <strong>Chrome, Brave, Edge, Arc</strong> (desktop)</div>
+              </div>
+            </div>
+          </div>
+          <div class="changelog-entry">
+            <div class="changelog-meta">
+              <div class="changelog-version">Unreleased</div>
+              <div class="changelog-date">In development</div>
+              <span class="changelog-badge">In progress</span>
+            </div>
+            <div class="changelog-items">
+              <div class="changelog-item">
+                <div class="changelog-item-dot"></div>
+                <div class="changelog-item-text"><strong>Safari desktop support</strong> (macOS 14+)</div>
+              </div>
+            </div>
+          </div>
+          <div class="changelog-entry">
+            <div class="changelog-meta">
+              <div class="changelog-version">Planned</div>
+              <div class="changelog-date">On the roadmap</div>
+              <span class="changelog-badge">Planned</span>
+            </div>
+            <div class="changelog-items">
+              <div class="changelog-item">
+                <div class="changelog-item-dot"></div>
+                <div class="changelog-item-text"><strong>Streaming explanations</strong> for faster feedback</div>
+              </div>
+              <div class="changelog-item">
+                <div class="changelog-item-dot"></div>
+                <div class="changelog-item-text"><strong>Ollama support</strong> — run fully local, no API key required</div>
+              </div>
+              <div class="changelog-item">
+                <div class="changelog-item-dot"></div>
+                <div class="changelog-item-text"><strong>Mobile Share Sheet</strong> — iOS and Android</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <a class="changelog-gh-link" href="https://github.com/Lohomi15/doubleii/blob/main/CHANGELOG.md" target="_blank" rel="noreferrer">
+          Full changelog on GitHub →
+        </a>
+      </div>
+    </section>
+
     <!-- install -->
     <section>
       <div class="install">
         <h2 class="install-heading">Install in 30 seconds.</h2>
-        <p class="install-sub">Desktop only — Chrome, Brave, Edge, or Arc. No app store. Download directly from GitHub.</p>
+        <p class="install-sub">Chrome, Brave, Edge, Arc — desktop. Safari support coming soon.</p>
         <div class="install-steps">
           <div class="install-step">
             <span class="install-step-num">1</span>

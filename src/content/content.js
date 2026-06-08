@@ -200,15 +200,22 @@
     showBubble(info.rect);
     setBubbleThinking();
 
-    const payload = {
-      id: `${info.rect.top | 0}-${performance.now() | 0}-${(Math.random() * 1e6) | 0}`,
-      selectedText: info.text,
-      context: extractContext(info.range, info.text),
-      title: document.title || "",
-      url: location.href,
-      fragmentUrl: buildFragmentUrl(info.text),
-      ts: Date.now(),
-    };
+    let payload;
+    try {
+      payload = {
+        id: `${info.rect.top | 0}-${performance.now() | 0}-${(Math.random() * 1e6) | 0}`,
+        selectedText: info.text,
+        context: extractContext(info.range, info.text),
+        title: document.title || "",
+        url: location.href,
+        fragmentUrl: buildFragmentUrl(info.text),
+        ts: Date.now(),
+      };
+    } catch (e) {
+      inFlight = false;
+      if (bubble) setBubbleError({ error: "Couldn't read the page context. Try again.", code: "GENERIC" });
+      return;
+    }
 
     chrome.runtime
       .sendMessage({ type: "doubleii:explain", payload })
@@ -312,7 +319,7 @@
     const body = bodyEl();
     if (!body) return;
     body.className = "dii-body";
-    body.innerHTML = ""; // clear the thinking shimmer
+    body.replaceChildren(); // clear the thinking shimmer
 
     const expl = document.createElement("div");
     expl.className = "dii-expl";
