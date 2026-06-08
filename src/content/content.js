@@ -162,6 +162,42 @@
     });
   }
 
+  // Positions the bubble to the right of the selection, vertically centred on it.
+  // Falls back to left, then below/above when there isn't enough horizontal space.
+  function placeBubble(rect) {
+    const margin = 10;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    bubble.style.left = "-9999px";
+    bubble.style.top = "-9999px";
+    requestAnimationFrame(() => {
+      const w = bubble.offsetWidth;
+      const h = bubble.offsetHeight;
+
+      // Prefer: right of selection, bubble mid-point aligned with selection mid-point
+      let left = rect.right + margin;
+      let top = Math.round(rect.top + rect.height / 2 - h / 2);
+
+      if (left + w > vw - margin) {
+        // Not enough room on right — try left
+        left = rect.left - w - margin;
+      }
+
+      if (left < margin) {
+        // Not enough room on either side (narrow viewport or wide selection) — fall below
+        left = Math.min(Math.max(margin, rect.left), vw - w - margin);
+        top = rect.bottom + margin;
+        if (top + h > vh - margin) top = Math.max(margin, rect.top - h - margin);
+      }
+
+      // Clamp vertically so it never leaves the viewport
+      top = Math.min(Math.max(margin, top), vh - h - margin);
+
+      bubble.style.left = `${left}px`;
+      bubble.style.top = `${top}px`;
+    });
+  }
+
   // ---- icon ---------------------------------------------------------------
 
   function showIcon(info) {
@@ -249,7 +285,7 @@
     bubble.querySelector(".dii-retry").addEventListener("click", () => startExplain(lastInfo));
     bubble.querySelector(".dii-head").addEventListener("mousedown", startDrag);
     shadow.appendChild(bubble);
-    placeAt(bubble, rect);
+    placeBubble(rect);
   }
 
   // ---- drag ---------------------------------------------------------------
