@@ -7,6 +7,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+- The Explain button and explanation bubble no longer grow or shrink with browser
+  zoom. doubleii's UI now keeps a constant on-screen size while you zoom the
+  article in or out for readability.
+
 ### Planned
 - Streaming (token-by-token) explanations
 - Configurable trigger key

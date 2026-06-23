@@ -44,6 +44,45 @@
   let dragOffsetX = 0;
   let dragOffsetY = 0;
 
+  // ---- zoom-independent sizing --------------------------------------------
+  // Browser zoom (Cmd/Ctrl +/-) scales CSS pixels, which would scale our UI
+  // along with the article. We capture the device pixel ratio at load and
+  // counter-scale the UI by the inverse of any later zoom change, so doubleii's
+  // button and bubble keep a constant on-screen size while the reader zooms the
+  // page for readability. (If the page is first loaded already-zoomed, the UI is
+  // sized to that zoom and then held constant from there.)
+  const BASE_DPR = window.devicePixelRatio || 1;
+
+  function uiScale() {
+    const z = (window.devicePixelRatio || 1) / BASE_DPR;
+    if (!z || !isFinite(z)) return 1;
+    return Math.min(2, Math.max(0.4, 1 / z));
+  }
+
+  // Visual footprint of an element after the counter-scale transform.
+  // offsetWidth/Height are pre-transform layout sizes, so multiply by the scale.
+  function scaledSize(el) {
+    const s = uiScale();
+    return { w: el.offsetWidth * s, h: el.offsetHeight * s };
+  }
+
+  function applyScale() {
+    if (host) host.style.setProperty("--dii-scale", String(uiScale()));
+  }
+
+  // Keep size constant across zoom changes; re-anchor the icon to the live
+  // selection (the article reflows at the new zoom, moving the selection rect).
+  window.addEventListener("resize", () => {
+    applyScale();
+    if (iconBtn) {
+      const info = readSelection();
+      if (info) {
+        currentSelection = info;
+        placeAt(iconBtn, info.rect);
+      }
+    }
+  });
+
   // ---- selection handling -------------------------------------------------
 
   document.addEventListener("mouseup", onPointerUp, true);
@@ -143,6 +182,7 @@
     style.textContent = fontFaceCSS() + STYLES;
     shadow.appendChild(style);
     document.documentElement.appendChild(host);
+    applyScale();
   }
 
   function placeAt(el, rect) {
@@ -152,8 +192,7 @@
     el.style.left = "-9999px";
     el.style.top = "-9999px";
     requestAnimationFrame(() => {
-      const w = el.offsetWidth;
-      const h = el.offsetHeight;
+      const { w, h } = scaledSize(el);
       const left = Math.min(Math.max(margin, rect.left), vw - w - margin);
       let top = rect.bottom + margin;
       if (top + h > vh - margin) top = Math.max(margin, rect.top - h - margin);
@@ -171,8 +210,7 @@
     bubble.style.left = "-9999px";
     bubble.style.top = "-9999px";
     requestAnimationFrame(() => {
-      const w = bubble.offsetWidth;
-      const h = bubble.offsetHeight;
+      const { w, h } = scaledSize(bubble);
 
       // Prefer: right of selection, bubble mid-point aligned with selection mid-point
       let left = rect.right + margin;
@@ -307,8 +345,7 @@
     const margin = 8;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    const w = bubble.offsetWidth;
-    const h = bubble.offsetHeight;
+    const { w, h } = scaledSize(bubble);
     const left = Math.min(Math.max(margin, e.clientX - dragOffsetX), vw - w - margin);
     const top  = Math.min(Math.max(margin, e.clientY - dragOffsetY), vh - h - margin);
     bubble.style.left = `${left}px`;
@@ -461,6 +498,7 @@
       letter-spacing: -0.01em; color: #ffffff; background: #000000; border: 0;
       border-radius: 9px; padding: 8px 11px; cursor: pointer;
       box-shadow: 0 4px 16px rgba(0,0,0,.28);
+      transform-origin: top left; transform: scale(var(--dii-scale, 1));
     }
     .dii-icon:hover { background: #181818; }
 
@@ -470,6 +508,7 @@
       border-radius: 14px; box-shadow: 0 14px 44px rgba(0,0,0,.4); overflow: hidden;
       font: 400 14px/1.6 'dii-Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       letter-spacing: -0.003em;
+      transform-origin: top left; transform: scale(var(--dii-scale, 1));
     }
     .dii-head {
       display: flex; align-items: center; justify-content: space-between;
