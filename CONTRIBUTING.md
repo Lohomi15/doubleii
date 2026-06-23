@@ -34,6 +34,29 @@ There's no build step. The code is plain JS:
 3. Don't add dependencies or a build step without discussing it first in an issue.
 4. Open a PR describing what changed and how you tested it.
 
+## Cutting a release
+
+The website's download buttons point at a **version-independent** URL:
+
+```
+https://github.com/Lohomi15/doubleii/releases/latest/download/doubleii.zip
+```
+
+GitHub serves that from whichever release is newest — but only if every release
+attaches an asset named **exactly `doubleii.zip`**. So when publishing a release:
+
+1. Bump `version` in `manifest.json` and add a `CHANGELOG.md` entry.
+2. Build a clean ZIP containing only the runtime files —
+   `manifest.json`, `src/`, `icons/`, `fonts/` (no `docs/`, `.git`, `safari/`, etc.).
+3. Attach it to the release **twice**:
+   - `doubleii.zip` — stable name the website and the in-app update notice rely on.
+   - `doubleii-vX.Y.Z.zip` — optional, version-stamped for humans browsing assets.
+4. Tag as `vX.Y.Z` so the in-app update check (`src/lib/update-check.js`) compares
+   correctly against `manifest.json`'s `version`.
+
+If you skip the `doubleii.zip` asset, the homepage "Get Extension" button 404s.
+The website never needs editing per release — only the release assets matter.
+
 ## Good first issues
 
 Check the [issues labelled `good first issue`](https://github.com/Lohomi15/doubleii/labels/good%20first%20issue).
