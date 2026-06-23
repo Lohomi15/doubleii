@@ -7,6 +7,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- Update notice in the explanation bubble: when a newer release exists on GitHub,
+  a line under the token/cost footer links to the latest release to re-download.
+  Since doubleii doesn't auto-update, this surfaces when you're on a stale build.
+  The check uses the GitHub Releases API, cached for 6 hours, and never blocks or
+  breaks an explanation if it fails.
+
 ### Fixed
 - The Explain button and explanation bubble no longer grow or shrink with browser
   zoom. doubleii's UI now keeps a constant on-screen size while you zoom the

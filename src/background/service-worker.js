@@ -5,6 +5,7 @@
 import { getSettings, addHistory, computeCost, DEFAULT_MODELS } from "../lib/storage.js";
 import { explain } from "../lib/providers.js";
 import { composeSystemPrompt } from "../lib/prompt.js";
+import { getUpdateStatus } from "../lib/update-check.js";
 
 const MENU_ID = "doubleii-explain";
 
@@ -73,6 +74,9 @@ async function handleExplain(payload) {
 
   const cost = computeCost(resolvedModel, inputTokens, outputTokens);
 
+  // Best-effort, cached version check — never let it block or break the explain.
+  const update = await getUpdateStatus().catch(() => ({ available: false, latest: "" }));
+
   await addHistory({
     id: payload.id,
     selectedText: payload.selectedText,
@@ -89,5 +93,5 @@ async function handleExplain(payload) {
     cost,
   });
 
-  return { explanation, inputTokens, outputTokens, cost };
+  return { explanation, inputTokens, outputTokens, cost, update };
 }

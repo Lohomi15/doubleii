@@ -14,7 +14,8 @@
   },
   "host_permissions": [
     "https://api.anthropic.com/*",
-    "https://api.openai.com/*"
+    "https://api.openai.com/*",
+    "https://api.github.com/*"
   ],
   "background": {
     "service_worker": "src/background/service-worker.js",

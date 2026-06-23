@@ -421,6 +421,25 @@
       newBody.appendChild(footer);
     }
 
+    // doubleii doesn't auto-update; nudge the reader to re-download when a newer
+    // release exists. Shown on its own line under the token/cost footer.
+    if (meta?.update?.available) {
+      const warn = document.createElement("div");
+      warn.className = "dii-update";
+      const dot = document.createElement("span");
+      dot.className = "dii-update-dot";
+      const link = document.createElement("a");
+      link.className = "dii-update-link";
+      link.href = meta.update.page || "https://github.com/Lohomi15/doubleii/releases/latest";
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = meta.update.latest
+        ? `Update available (v${meta.update.latest}) — re-download`
+        : "Update available — re-download";
+      warn.append(dot, link);
+      newBody.appendChild(warn);
+    }
+
     const oldBody = bubble.querySelector(".dii-body");
     if (oldBody) oldBody.replaceWith(newBody); else bubble.appendChild(newBody);
   }
@@ -542,6 +561,22 @@
       white-space: nowrap;
     }
     .dii-cost-link:hover { color: #f5f4f2; }
+
+    /* update-available notice (shown under the cost when a newer release exists) */
+    .dii-update {
+      display: flex; align-items: center; gap: 6px;
+      margin-top: -6px; padding-bottom: 13px;
+    }
+    .dii-update-dot {
+      flex: none; width: 6px; height: 6px; border-radius: 50%;
+      background: #e0a23c; box-shadow: 0 0 0 3px rgba(224,162,60,.16);
+    }
+    .dii-update-link {
+      font: 500 11px/1.3 'dii-Sans', sans-serif; color: #e0a23c;
+      text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px;
+      letter-spacing: 0.01em; cursor: pointer;
+    }
+    .dii-update-link:hover { color: #f0b659; }
 
     /* thinking shimmer */
     .dii-think { padding: 6px 0 8px; }
